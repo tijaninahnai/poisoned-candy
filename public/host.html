@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poisoned Candy — Host Panel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0f0f13;
+      color: #f0f0f0;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: #ff6b81;
+      margin-bottom: 2rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 1000px;
+    }
+
+    @media (max-width: 700px) {
+      .panel { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #1a1a24;
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid #2a2a3a;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      color: #aaa;
+      margin-bottom: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      background: #0f0f13;
+      border: 1px solid #2a2a3a;
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      color: #f0f0f0;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus {
+      border-color: #ff6b81;
+    }
+
+    .upload-area {
+      border: 2px dashed #2a2a3a;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+
+    .upload-area:hover { border-color: #ff6b81; }
+
+    .upload-area input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-area img {
+      max-width: 120px;
+      max-height: 120px;
+      border-radius: 8px;
+      display: none;
+      margin: 0 auto;
+    }
+
+    .upload-area p { color: #666; font-size: 0.9rem; }
+
+    .btn {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #ff6b81; color: white; }
+    .btn-danger { background: #c0392b; color: white; }
+
+    .status {
+      margin-top: 1rem;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .status.success { background: #1a3a2a; color: #4ecca3; display: block; }
+    .status.error { background: #3a1a1a; color: #ff6b81; display: block; }
+
+    /* Queue list */
+    .queue-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .queue-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #0f0f13;
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      border: 1px solid #2a2a3a;
+    }
+
+    .queue-item img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .queue-item .info { flex: 1; }
+    .queue-item .info strong { display: block; font-size: 0.95rem; }
+    .queue-item .info span { font-size: 0.75rem; color: #666; }
+
+    .palette {
+      display: flex;
+      gap: 4px;
+    }
+
+    .swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid #333;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge.active { background: #1a3a2a; color: #4ecca3; }
+    .badge.queued { background: #1a1a3a; color: #6b81ff; }
+    .badge.used { background: #2a2a2a; color: #666; }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .del-btn:hover { color: #ff6b81; }
+  </style>
+</head>
+<body>
+  <h1>🍬 Host Panel</h1>
+
+  <div class="panel">
+    <!-- Upload card -->
+    <div class="card">
+      <h2>Upload New Candy</h2>
+
+      <input type="text" id="candyName" placeholder="Candy name (e.g. Strawberry Bonbon)">
+      <input type="date" id="scheduledDate" placeholder="Scheduled date (optional)">
+
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept="image/*">
+        <img id="preview" alt="preview">
+        <p id="uploadText">Click or drag image here<br><small>White background recommended</small></p>
+      </div>
+
+      <button class="btn btn-primary" onclick="uploadCandy()">Upload to Queue</button>
+      <div class="status" id="status"></div>
+    </div>
+
+    <!-- Queue card -->
+    <div class="card">
+      <h2>Candy Queue</h2>
+      <div class="queue-list" id="queueList">
+        <p style="color:#666; font-size:0.9rem;">Loading queue...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Image preview
+    document.getElementById('fileInput').addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('preview');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('uploadText').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Upload
+    async function uploadCandy() {
+      const name = document.getElementById('candyName').value.trim();
+      const file = document.getElementById('fileInput').files[0];
+      const scheduledDate = document.getElementById('scheduledDate').value;
+      const status = document.getElementById('status');
+
+      if (!name || !file) {
+        showStatus('Please fill in a name and select an image.', 'error');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('name', name);
+      if (scheduledDate) formData.append('scheduledDate', scheduledDate);
+
+      showStatus('Uploading...', 'success');
+
+      try {
+        const res = await fetch('/api/candy/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.success) {
+          showStatus(`✅ "${data.candy.name}" added to queue (position ${data.candy.queuePosition})`, 'success');
+          document.getElementById('candyName').value = '';
+          document.getElementById('fileInput').value = '';
+          document.getElementById('preview').style.display = 'none';
+          document.getElementById('uploadText').style.display = 'block';
+          loadQueue();
+        } else {
+          showStatus('❌ ' + data.error, 'error');
+        }
+      } catch (err) {
+        showStatus('❌ Upload failed: ' + err.message, 'error');
+      }
+    }
+
+    // Load queue
+    async function loadQueue() {
+      try {
+        const res = await fetch('/api/candy/queue');
+        const candies = await res.json();
+        const list = document.getElementById('queueList');
+
+        if (!candies.length) {
+          list.innerHTML = '<p style="color:#666; font-size:0.9rem;">Queue is empty — upload your first candy!</p>';
+          return;
+        }
+
+        list.innerHTML = candies.map(c => `
+          <div class="queue-item">
+            <img src="${c.imageUrl}" alt="${c.name}">
+            <div class="info">
+              <strong>${c.name}</strong>
+              <span>#${c.queuePosition} ${c.scheduledDate ? '· ' + new Date(c.scheduledDate).toLocaleDateString() : ''}</span>
+              <div class="palette" style="margin-top:4px">
+                ${c.colorPalette.map(col => `<div class="swatch" style="background:${col}"></div>`).join('')}
+              </div>
+            </div>
+            <span class="badge ${c.status}">${c.status}</span>
+            <button class="del-btn" onclick="deleteCandy('${c._id}', '${c.name}')">🗑</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('queueList').innerHTML = '<p style="color:#ff6b81;">Failed to load queue</p>';
+      }
+    }
+
+    // Delete
+    async function deleteCandy(id, name) {
+      if (!confirm(`Remove "${name}" from the queue?`)) return;
+      try {
+        await fetch(`/api/candy/${id}`, { method: 'DELETE' });
+        loadQueue();
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      }
+    }
+
+    function showStatus(msg, type) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = 'status ' + type;
+    }
+
+    // Load on start
+    loadQueue();
+  </script>
+</body>
+</html>
