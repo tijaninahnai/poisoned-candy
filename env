@@ -1,1 +1,5 @@
-
+MONGODB_URI=mongodb+srv://Tiji:ILikeFaiza@central-europe-dev.5aoshdx.mongodb.net/poisoned-candy?appName=central-europe-dev
+PORT=3000
+CLOUDINARY_CLOUD_NAME=dtemwxrv9
+CLOUDINARY_API_KEY=719121145945196
+CLOUDINARY_API_SECRET=plak_hier_je_secret
