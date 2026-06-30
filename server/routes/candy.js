@@ -33,14 +33,17 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     if (!name) return res.status(400).json({ error: 'Candy name is required' });
 
     // Extract dominant colors from the uploaded image via Cloudinary
-    const colorData = await cloudinary.api.resource(req.file.filename, {
-      colors: true
-    });
-
-    const palette = colorData.colors
-      ? colorData.colors.slice(0, 5).map(c => c[0])
-      : ['#ff6b81', '#ffffff', '#c0392b'];
-
+    let palette = ['#ff6b81', '#ffffff', '#c0392b'];
+    try {
+      const colorData = await cloudinary.api.resource(req.file.filename, {
+        colors: true
+      });
+      if (colorData.colors) {
+        palette = colorData.colors.slice(0, 5).map(c => c[0]);
+      }
+    } catch (colorErr) {
+      console.error('Color extraction failed (using fallback palette):', colorErr.message);
+    }
     // Find next queue position
     const lastCandy = await Candy.findOne().sort({ queuePosition: -1 });
     const nextPosition = lastCandy ? lastCandy.queuePosition + 1 : 1;
