@@ -5,14 +5,12 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Candy = require('../models/Candy');
 
-// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Multer storage → direct naar Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -24,7 +22,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// GET /api/candy/next-date — moet VOOR /:id routes staan!
+// GET /api/candy/next-date — VOOR /:id routes!
 router.get('/next-date', async (req, res) => {
   try {
     const lastCandy = await Candy.findOne({ scheduledDate: { $ne: null } }).sort({ scheduledDate: -1 });
@@ -65,13 +63,18 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     if (!name) return res.status(400).json({ error: 'Candy name is required' });
 
-    const colorData = await cloudinary.api.resource(req.file.filename, {
-      colors: true
-    });
-
-    const palette = colorData.colors
-      ? colorData.colors.slice(0, 5).map(c => c[0])
-      : ['#ff6b81', '#ffffff', '#c0392b'];
+    // Kleur-extractie — veilig afgevangen zodat upload nooit faalt
+    let palette = ['#ff6b81', '#ffffff', '#c0392b'];
+    try {
+      const colorData = await cloudinary.api.resource(req.file.filename, {
+        colors: true
+      });
+      if (colorData.colors) {
+        palette = colorData.colors.slice(0, 5).map(c => c[0]);
+      }
+    } catch (colorErr) {
+      console.error('Color extraction failed (using fallback):', colorErr.message);
+    }
 
     const lastCandy = await Candy.findOne().sort({ queuePosition: -1 });
     const nextPosition = lastCandy ? lastCandy.queuePosition + 1 : 1;
