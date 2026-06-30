@@ -184,6 +184,26 @@
     }
 
     .del-btn:hover { color: #ff6b81; }
+    .move-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .move-btn {
+      background: #1a1a24;
+      border: 1px solid #2a2a3a;
+      color: #888;
+      width: 24px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+
+    .move-btn:hover:not(:disabled) { border-color: #ff6b81; color: #ff6b81; }
+    .move-btn:disabled { opacity: 0.2; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -215,6 +235,13 @@
       </div>
     </div>
   </div>
-
+<!-- Preview modal -->
+  <div id="previewModal" onclick="closePreview()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:1000; cursor:pointer;">
+    <div style="text-align:center;">
+      <img id="previewModalImg" style="max-width:90vw; max-height:75vh; border-radius:12px; box-shadow:0 0 40px rgba(255,107,129,0.3);">
+      <p id="previewModalName" style="margin-top:1rem; color:#f0f0f0; font-size:1.1rem;"></p>
+      <p style="color:#666; font-size:0.85rem; margin-top:0.5rem;">Tap anywhere to close</p>
+    </div>
+  </div>
 </body>
 </html>
