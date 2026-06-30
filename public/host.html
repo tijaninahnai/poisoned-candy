@@ -184,6 +184,26 @@
     }
 
     .del-btn:hover { color: #ff6b81; }
+    .move-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .move-btn {
+      background: #1a1a24;
+      border: 1px solid #2a2a3a;
+      color: #888;
+      width: 24px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+
+    .move-btn:hover:not(:disabled) { border-color: #ff6b81; color: #ff6b81; }
+    .move-btn:disabled { opacity: 0.2; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -215,7 +235,14 @@
       </div>
     </div>
   </div>
-
+<!-- Preview modal -->
+  <div id="previewModal" onclick="closePreview()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:1000; cursor:pointer;">
+    <div style="text-align:center;">
+      <img id="previewModalImg" style="max-width:90vw; max-height:75vh; border-radius:12px; box-shadow:0 0 40px rgba(255,107,129,0.3);">
+      <p id="previewModalName" style="margin-top:1rem; color:#f0f0f0; font-size:1.1rem;"></p>
+      <p style="color:#666; font-size:0.85rem; margin-top:0.5rem;">Tap anywhere to close</p>
+    </div>
+  </div>
   <script>
     // Image preview
     document.getElementById('fileInput').addEventListener('change', function() {
@@ -231,12 +258,20 @@
       reader.readAsDataURL(file);
     });
 
-    // Upload
+    async function suggestNextDate() {
+      try {
+        const res = await fetch('/api/candy/next-date');
+        const data = await res.json();
+        document.getElementById('scheduledDate').value = data.nextDate;
+      } catch (err) {
+        console.error('Could not suggest next date:', err);
+      }
+    }
+
     async function uploadCandy() {
       const name = document.getElementById('candyName').value.trim();
       const file = document.getElementById('fileInput').files[0];
       const scheduledDate = document.getElementById('scheduledDate').value;
-      const status = document.getElementById('status');
 
       if (!name || !file) {
         showStatus('Please fill in a name and select an image.', 'error');
@@ -261,6 +296,7 @@
           document.getElementById('preview').style.display = 'none';
           document.getElementById('uploadText').style.display = 'block';
           loadQueue();
+          suggestNextDate();
         } else {
           showStatus('❌ ' + data.error, 'error');
         }
@@ -269,7 +305,6 @@
       }
     }
 
-    // Load queue
     async function loadQueue() {
       try {
         const res = await fetch('/api/candy/queue');
@@ -281,9 +316,9 @@
           return;
         }
 
-        list.innerHTML = candies.map(c => `
+        list.innerHTML = candies.map((c, idx) => `
           <div class="queue-item">
-            <img src="${c.imageUrl}" alt="${c.name}">
+            <img src="${c.imageUrl}" alt="${c.name}" onclick="openPreview('${c.imageUrl}', '${c.name.replace(/'/g, "\\'")}')">
             <div class="info">
               <strong>${c.name}</strong>
               <span>#${c.queuePosition} ${c.scheduledDate ? '· ' + new Date(c.scheduledDate).toLocaleDateString() : ''}</span>
@@ -292,7 +327,11 @@
               </div>
             </div>
             <span class="badge ${c.status}">${c.status}</span>
-            <button class="del-btn" onclick="deleteCandy('${c._id}', '${c.name}')">🗑</button>
+            <div class="move-btns">
+              <button class="move-btn" onclick="moveCandy('${c._id}', 'up')" ${idx === 0 ? 'disabled' : ''}>▲</button>
+              <button class="move-btn" onclick="moveCandy('${c._id}', 'down')" ${idx === candies.length - 1 ? 'disabled' : ''}>▼</button>
+            </div>
+            <button class="del-btn" onclick="deleteCandy('${c._id}', '${c.name.replace(/'/g, "\\'")}')">🗑</button>
           </div>
         `).join('');
       } catch (err) {
@@ -300,7 +339,24 @@
       }
     }
 
-    // Delete
+    async function moveCandy(id, direction) {
+      try {
+        const res = await fetch(`/api/candy/${id}/move`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ direction })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadQueue();
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Move failed: ' + err.message);
+      }
+    }
+
     async function deleteCandy(id, name) {
       if (!confirm(`Remove "${name}" from the queue?`)) return;
       try {
@@ -311,14 +367,24 @@
       }
     }
 
+    function openPreview(url, name) {
+      document.getElementById('previewModalImg').src = url;
+      document.getElementById('previewModalName').textContent = name;
+      document.getElementById('previewModal').style.display = 'flex';
+    }
+
+    function closePreview() {
+      document.getElementById('previewModal').style.display = 'none';
+    }
+
     function showStatus(msg, type) {
       const el = document.getElementById('status');
       el.textContent = msg;
       el.className = 'status ' + type;
     }
 
-    // Load on start
     loadQueue();
+    suggestNextDate();
   </script>
 </body>
 </html>
