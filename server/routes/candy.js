@@ -137,5 +137,15 @@ router.patch('/:id/move', async (req, res) => {
                                                                           } catch (err) {
                                                                               res.status(500).json({ error: err.message });
                                                                                 }
-                                                                                });
+        // GET /api/candy/next-date — suggereert de volgende datum op basis van laatste candy in queue
+        // router.get('/next-date', async (req, res) => {
+          try {
+              const lastCandy = await Candy.findOne({ scheduledDate: { $ne: null } }).sort({ scheduledDate: -1 });
+                  const baseDate = lastCandy ? new Date(lastCandy.scheduledDate) : new Date();
+                      baseDate.setDate(baseDate.getDate() + 1);
+                          res.json({ nextDate: baseDate.toISOString().split('T')[0] }); // YYYY-MM-DD formaat
+                            } catch (err) {
+                                res.status(500).json({ error: err.message });
+                                  }
+                                  });                                                                        });
 module.exports = router;
