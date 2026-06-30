@@ -110,5 +110,32 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// PATCH /api/candy/:id/move — verplaats candy omhoog of omlaag in de queue
+router.patch('/:id/move', async (req, res) => {
+  try {
+      const { direction } = req.body; // 'up' of 'down'
+          const candy = await Candy.findById(req.params.id);
+              if (!candy) return res.status(404).json({ error: 'Candy not found' });
 
+                  const neighbor = direction === 'up'
+                        ? await Candy.findOne({ queuePosition: { $lt: candy.queuePosition } }).sort({ queuePosition: -1 })
+                              : await Candy.findOne({ queuePosition: { $gt: candy.queuePosition } }).sort({ queuePosition: 1 });
+
+                                  if (!neighbor) {
+                                        return res.status(400).json({ error: `Already at the ${direction === 'up' ? 'top' : 'bottom'}` });
+                                            }
+
+                                                // Swap queuePosition values
+                                                    const tempPos = candy.queuePosition;
+                                                        candy.queuePosition = neighbor.queuePosition;
+                                                            neighbor.queuePosition = tempPos;
+
+                                                                await candy.save();
+                                                                    await neighbor.save();
+
+                                                                        res.json({ success: true });
+                                                                          } catch (err) {
+                                                                              res.status(500).json({ error: err.message });
+                                                                                }
+                                                                                });
 module.exports = router;
