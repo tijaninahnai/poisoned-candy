@@ -22,7 +22,6 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// GET /api/candy/next-date — VOOR /:id routes!
 router.get('/next-date', async (req, res) => {
   try {
     const lastCandy = await Candy.findOne({ scheduledDate: { $ne: null } }).sort({ scheduledDate: -1 });
@@ -34,7 +33,6 @@ router.get('/next-date', async (req, res) => {
   }
 });
 
-// GET /api/candy/queue
 router.get('/queue', async (req, res) => {
   try {
     const candies = await Candy.find().sort({ queuePosition: 1 });
@@ -44,7 +42,6 @@ router.get('/queue', async (req, res) => {
   }
 });
 
-// GET /api/candy/today
 router.get('/today', async (req, res) => {
   try {
     const candy = await Candy.findOne({ status: 'active' });
@@ -55,23 +52,16 @@ router.get('/today', async (req, res) => {
   }
 });
 
-// POST /api/candy/upload
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
     const { name, scheduledDate } = req.body;
-
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     if (!name) return res.status(400).json({ error: 'Candy name is required' });
 
-    // Kleur-extractie — veilig afgevangen zodat upload nooit faalt
     let palette = ['#ff6b81', '#ffffff', '#c0392b'];
     try {
-      const colorData = await cloudinary.api.resource(req.file.filename, {
-        colors: true
-      });
-      if (colorData.colors) {
-        palette = colorData.colors.slice(0, 5).map(c => c[0]);
-      }
+      const colorData = await cloudinary.api.resource(req.file.filename, { colors: true });
+      if (colorData.colors) palette = colorData.colors.slice(0, 5).map(c => c[0]);
     } catch (colorErr) {
       console.error('Color extraction failed (using fallback):', colorErr.message);
     }
@@ -90,17 +80,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     });
 
     await candy.save();
-
-    res.json({
-      success: true,
-      candy: {
-        id: candy._id,
-        name: candy.name,
-        imageUrl: candy.imageUrl,
-        colorPalette: candy.colorPalette,
-        queuePosition: candy.queuePosition
-      }
-    });
+    res.json({ success: true, candy: { id: candy._id, name: candy.name, imageUrl: candy.imageUrl, colorPalette: candy.colorPalette, queuePosition: candy.queuePosition } });
 
   } catch (err) {
     console.error('Upload error:', err);
@@ -108,7 +88,6 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// PATCH /api/candy/:id/move
 router.patch('/:id/move', async (req, res) => {
   try {
     const { direction } = req.body;
@@ -119,9 +98,7 @@ router.patch('/:id/move', async (req, res) => {
       ? await Candy.findOne({ queuePosition: { $lt: candy.queuePosition } }).sort({ queuePosition: -1 })
       : await Candy.findOne({ queuePosition: { $gt: candy.queuePosition } }).sort({ queuePosition: 1 });
 
-    if (!neighbor) {
-      return res.status(400).json({ error: `Already at the ${direction === 'up' ? 'top' : 'bottom'}` });
-    }
+    if (!neighbor) return res.status(400).json({ error: `Already at the ${direction === 'up' ? 'top' : 'bottom'}` });
 
     const tempPos = candy.queuePosition;
     candy.queuePosition = neighbor.queuePosition;
@@ -129,22 +106,18 @@ router.patch('/:id/move', async (req, res) => {
 
     await candy.save();
     await neighbor.save();
-
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE /api/candy/:id
 router.delete('/:id', async (req, res) => {
   try {
     const candy = await Candy.findById(req.params.id);
     if (!candy) return res.status(404).json({ error: 'Candy not found' });
-
     await cloudinary.uploader.destroy(candy.cloudinaryId);
     await candy.deleteOne();
-
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
