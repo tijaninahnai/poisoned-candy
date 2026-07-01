@@ -19,8 +19,8 @@
 
     .container {
       width: 100%;
-      max-width: 380px;
-      padding: 2rem;
+      max-width: 480px;
+      padding: 2.5rem 1.4rem;
     }
 
     .logo {
@@ -29,115 +29,137 @@
     }
 
     .logo h1 {
-      font-size: 1.9rem;
+      font-size: 2.6rem;
       color: #ff6b81;
       letter-spacing: 3px;
       text-transform: uppercase;
+      line-height: 1.1;
     }
 
-    .logo p { color: #444; font-size: 0.8rem; margin-top: 0.4rem; letter-spacing: 1px; }
+    .logo p {
+      color: #444;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      letter-spacing: 1px;
+    }
 
     .candy-preview {
       display: none;
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.8rem;
     }
 
-    .candy-preview img { width: 64px; height: 64px; object-fit: contain; }
-    .candy-preview p { color: #444; font-size: 0.72rem; margin-top: 0.3rem; }
-    .candy-preview strong { display: block; color: #aaa; font-size: 0.85rem; }
+    .candy-preview img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+
+    .candy-preview p { color: #444; font-size: 0.75rem; margin-top: 0.4rem; }
+    .candy-preview strong { display: block; color: #aaa; font-size: 0.9rem; margin-top: 0.1rem; }
 
     /* Name */
     .name-bar {
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: 1rem;
       background: #1a1a24;
-      border-radius: 14px;
-      padding: 0.9rem 1.1rem;
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
       border: 1px solid #2a2a3a;
       margin-bottom: 1.2rem;
     }
 
     .avatar {
-      width: 34px; height: 34px;
+      width: 42px; height: 42px;
       background: #ff6b81;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.95rem; font-weight: 700; flex-shrink: 0;
+      font-size: 1.1rem; font-weight: 700; flex-shrink: 0;
     }
 
     .name-info { flex: 1; }
-    .name-info small { color: #555; font-size: 0.7rem; display: block; }
-    .name-info strong { font-size: 0.9rem; }
+    .name-info small { color: #555; font-size: 0.72rem; display: block; }
+    .name-info strong { font-size: 1rem; }
 
     .edit-btn {
       background: none; border: 1px solid #2a2a3a;
       color: #555; border-radius: 8px;
-      padding: 3px 10px; font-size: 0.72rem; cursor: pointer;
+      padding: 5px 12px; font-size: 0.78rem; cursor: pointer;
     }
 
     .edit-btn:hover { border-color: #ff6b81; color: #ff6b81; }
 
     .name-input-wrap {
       background: #1a1a24;
-      border-radius: 14px;
-      padding: 1rem 1.2rem;
+      border-radius: 16px;
+      padding: 1.2rem 1.4rem;
       border: 1px solid #2a2a3a;
       margin-bottom: 1.2rem;
       display: none;
     }
 
     .name-input-wrap label {
-      font-size: 0.7rem; color: #555;
+      font-size: 0.72rem; color: #555;
       text-transform: uppercase; letter-spacing: 1px;
-      display: block; margin-bottom: 0.5rem;
+      display: block; margin-bottom: 0.6rem;
     }
 
     .name-input-wrap input {
       width: 100%;
       background: #0f0f13;
       border: 1px solid #2a2a3a;
-      border-radius: 10px;
-      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
       color: #f0f0f0;
       font-size: 1rem;
       outline: none;
-      margin-bottom: 0.7rem;
+      margin-bottom: 0.8rem;
     }
 
     .name-input-wrap input:focus { border-color: #ff6b81; }
 
     /* Buttons */
-    .actions { display: flex; flex-direction: column; gap: 0.7rem; }
+    .actions { display: flex; flex-direction: column; gap: 0.8rem; }
 
     .btn {
-      width: 100%; padding: 1rem;
-      border-radius: 14px; border: none;
-      font-size: 0.95rem; font-weight: 700;
+      width: 100%;
+      padding: 1.15rem;
+      border-radius: 16px;
+      border: none;
+      font-size: 1.05rem;
+      font-weight: 700;
       cursor: pointer;
       transition: opacity 0.2s, transform 0.1s;
-      display: flex; align-items: center;
-      justify-content: center; gap: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      letter-spacing: 0.3px;
     }
 
     .btn:hover { opacity: 0.85; }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: #ff6b81; color: white; }
-    .btn-secondary { background: #1a1a24; color: #f0f0f0; border: 1px solid #2a2a3a; }
+    .btn-secondary {
+      background: #1a1a24;
+      color: #f0f0f0;
+      border: 1px solid #2a2a3a;
+    }
     .btn-secondary:hover { border-color: #ff6b81; }
+
     .btn-sm {
-      width: 100%; padding: 0.7rem;
-      border-radius: 10px; border: none;
+      width: 100%; padding: 0.85rem;
+      border-radius: 12px; border: none;
       background: #ff6b81; color: white;
-      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
     }
 
     .disabled { opacity: 0.3; pointer-events: none; }
+    .error { color: #ff6b81; font-size: 0.85rem; text-align: center; min-height: 1.2rem; margin-top: 0.6rem; }
 
-    .error { color: #ff6b81; font-size: 0.82rem; text-align: center; min-height: 1.2rem; margin-top: 0.5rem; }
-
-    /* ── OVERLAYS ── */
+    /* Overlays */
     .overlay {
       display: none;
       position: fixed; inset: 0;
@@ -146,17 +168,16 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1.2rem;
-      padding: 2rem;
+      gap: 1.4rem;
+      padding: 2rem 1.4rem;
     }
 
     .overlay.show { display: flex; }
-
-    .overlay h2 { font-size: 1.2rem; color: #ff6b81; }
+    .overlay h2 { font-size: 1.3rem; color: #ff6b81; }
 
     /* Matchmaking */
     .spinner {
-      width: 44px; height: 44px;
+      width: 48px; height: 48px;
       border: 3px solid #2a2a3a;
       border-top-color: #ff6b81;
       border-radius: 50%;
@@ -164,57 +185,50 @@
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .mm-time { color: #555; font-size: 0.85rem; }
+    .mm-time { color: #555; font-size: 0.9rem; }
 
     /* Lobby */
     .lobby-list {
-      width: 100%; max-width: 360px;
+      width: 100%; max-width: 420px;
       max-height: 55vh;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: 0.7rem;
     }
 
     .lobby-player {
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: 0.9rem;
       background: #1a1a24;
       border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 0.8rem 1rem;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
     }
 
     .online-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
+      width: 9px; height: 9px;
+      border-radius: 50%; flex-shrink: 0;
     }
 
     .online-dot.available { background: #4ecca3; box-shadow: 0 0 6px #4ecca3; }
     .online-dot.ingame { background: #f0c040; }
 
-    .lobby-player .p-name { flex: 1; font-size: 0.9rem; }
-    .lobby-player .p-status { font-size: 0.7rem; color: #555; }
+    .p-name { font-size: 0.95rem; }
+    .p-status { font-size: 0.72rem; color: #555; margin-top: 2px; }
 
     .invite-btn {
-      background: #ff6b81;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      padding: 4px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
+      background: #ff6b81; border: none;
+      border-radius: 10px; color: white;
+      padding: 6px 14px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; flex-shrink: 0;
     }
 
     .invite-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
     .lobby-empty { color: #444; font-size: 0.85rem; text-align: center; padding: 2rem; }
 
-    /* Invite received popup */
+    /* Invite popup */
     .invite-popup {
       display: none;
       position: fixed;
@@ -222,58 +236,61 @@
       transform: translateX(-50%);
       background: #1a1a24;
       border: 1px solid #ff6b81;
-      border-radius: 16px;
-      padding: 1.2rem 1.5rem;
+      border-radius: 18px;
+      padding: 1.4rem 1.6rem;
       z-index: 600;
-      width: 90%; max-width: 340px;
+      width: 90%; max-width: 360px;
       box-shadow: 0 0 30px rgba(255,107,129,0.2);
     }
 
     .invite-popup.show { display: block; }
-    .invite-popup p { font-size: 0.9rem; margin-bottom: 1rem; }
+    .invite-popup p { font-size: 0.95rem; margin-bottom: 1rem; }
     .invite-popup p span { color: #ff6b81; font-weight: 700; }
-    .invite-popup-btns { display: flex; gap: 0.6rem; }
+    .invite-popup-btns { display: flex; gap: 0.7rem; }
     .invite-popup-btns button {
-      flex: 1; padding: 0.6rem;
-      border-radius: 10px; border: none;
-      font-weight: 600; cursor: pointer; font-size: 0.85rem;
+      flex: 1; padding: 0.75rem;
+      border-radius: 12px; border: none;
+      font-weight: 600; cursor: pointer; font-size: 0.9rem;
     }
 
     .btn-accept { background: #4ecca3; color: #0f0f13; }
     .btn-decline { background: #2a2a3a; color: #aaa; }
 
-    /* Create session overlay */
+    /* Session overlay */
     .session-card {
       background: #1a1a24;
       border: 1px solid #2a2a3a;
-      border-radius: 16px;
-      padding: 1.5rem 2rem;
+      border-radius: 18px;
+      padding: 1.8rem 2rem;
       text-align: center;
-      width: 100%; max-width: 320px;
+      width: 100%; max-width: 360px;
     }
 
     .session-card p { color: #555; font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
-    .session-card .code { font-size: 2rem; font-weight: 900; color: #ff6b81; letter-spacing: 8px; }
-    .session-card .link { font-size: 0.72rem; color: #444; margin-top: 0.6rem; word-break: break-all; }
+    .session-card .code { font-size: 2.2rem; font-weight: 900; color: #ff6b81; letter-spacing: 8px; }
+    .session-card .link { font-size: 0.72rem; color: #444; margin-top: 0.7rem; word-break: break-all; }
 
-    .session-actions { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; max-width: 320px; }
+    .session-actions {
+      display: flex; flex-direction: column;
+      gap: 0.7rem; width: 100%; max-width: 360px;
+    }
 
     .btn-cancel {
       background: none; border: 1px solid #2a2a3a;
-      color: #555; padding: 0.6rem 1.5rem;
-      border-radius: 10px; cursor: pointer; font-size: 0.82rem;
+      color: #555; padding: 0.7rem 1.5rem;
+      border-radius: 12px; cursor: pointer; font-size: 0.85rem;
+      width: 100%;
     }
 
     .btn-cancel:hover { border-color: #ff6b81; color: #ff6b81; }
-
-    .copied-msg { color: #4ecca3; font-size: 0.8rem; min-height: 1rem; text-align: center; }
+    .copied-msg { color: #4ecca3; font-size: 0.82rem; min-height: 1rem; text-align: center; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="logo">
-    <h1>🍬 Poisoned Candy</h1>
+    <h1>🍬 Poisoned<br>Candy</h1>
     <p>One candy is poisoned. Choose wisely.</p>
   </div>
 
@@ -283,7 +300,6 @@
     <strong id="todayName"></strong>
   </div>
 
-  <!-- Name bar -->
   <div class="name-bar" id="nameBar">
     <div class="avatar" id="avatar">?</div>
     <div class="name-info">
@@ -293,7 +309,6 @@
     <button class="edit-btn" onclick="editName()">Edit</button>
   </div>
 
-  <!-- Name input -->
   <div class="name-input-wrap" id="nameInputWrap">
     <label>Choose your name</label>
     <input type="text" id="nameInput" placeholder="Your name" maxlength="20"
@@ -301,11 +316,10 @@
     <button class="btn-sm" onclick="saveName()">Save</button>
   </div>
 
-  <!-- Main actions -->
   <div class="actions" id="actions">
-    <button class="btn btn-primary" id="btnPlay" onclick="playGame()">⚡ Play Game</button>
-    <button class="btn btn-secondary" id="btnLobby" onclick="openLobby()">🏠 Lobby</button>
-    <button class="btn btn-secondary" id="btnCreate" onclick="createSession()">🔗 Create Session</button>
+    <button class="btn btn-primary" onclick="playGame()">⚡ Play Game</button>
+    <button class="btn btn-secondary" onclick="openLobby()">🏠 Lobby</button>
+    <button class="btn btn-secondary" onclick="createSession()">🔗 Create Session</button>
   </div>
 
   <div class="error" id="error"></div>
@@ -341,7 +355,7 @@
     <div class="copied-msg" id="copiedMsg"></div>
     <button class="btn-cancel" onclick="closeSession()">Cancel</button>
   </div>
-  <p style="color:#555; font-size:0.8rem;" id="sessionStatus">Waiting for opponent...</p>
+  <p style="color:#555; font-size:0.82rem;">Waiting for opponent...</p>
 </div>
 
 <!-- Invite received popup -->
@@ -362,9 +376,9 @@
   let pendingInviteFrom = null;
   let inLobby = false;
 
-  // Init
   initName();
   loadTodayCandy();
+  if (playerName) socket.emit('goOnline', { playerName });
 
   function initName() {
     if (playerName) showNameBar();
@@ -412,10 +426,6 @@
     } catch (e) {}
   }
 
-  // Go online when page loads (if name already set)
-  if (playerName) socket.emit('goOnline', { playerName });
-
-  // ── PLAY GAME (matchmaking) ──
   function playGame() {
     if (!playerName) return showError('Save your name first.');
     hideError();
@@ -435,7 +445,6 @@
     document.getElementById('mmOverlay').classList.remove('show');
   }
 
-  // ── LOBBY ──
   function openLobby() {
     if (!playerName) return showError('Save your name first.');
     hideError();
@@ -480,7 +489,6 @@
     showError(`Invite sent to ${toName}...`);
   }
 
-  // ── INVITE RECEIVED ──
   socket.on('inviteReceived', ({ fromSocketId, fromName }) => {
     pendingInviteFrom = { socketId: fromSocketId, name: fromName };
     document.getElementById('inviteFromName').textContent = fromName;
@@ -510,11 +518,9 @@
     pendingInviteFrom = null;
   }
 
-  // ── CREATE SESSION ──
   async function createSession() {
     if (!playerName) return showError('Save your name first.');
     hideError();
-
     try {
       const res = await fetch('/api/game/create', {
         method: 'POST',
@@ -537,7 +543,6 @@
           window.location.href = `/game/${data.roomCode}`;
         }
       }, 2000);
-
     } catch (err) {
       showError('Could not create session.');
     }
@@ -556,7 +561,6 @@
     document.getElementById('sessionOverlay').classList.remove('show');
   }
 
-  // ── MATCH FOUND (any path) ──
   socket.on('matchFound', ({ roomCode }) => {
     clearInterval(mmTimer);
     document.getElementById('mmOverlay').classList.remove('show');
