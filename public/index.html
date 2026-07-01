@@ -19,7 +19,7 @@
 
     .container {
       width: 100%;
-      max-width: 400px;
+      max-width: 380px;
       padding: 2rem;
     }
 
@@ -29,18 +29,13 @@
     }
 
     .logo h1 {
-      font-size: 2rem;
+      font-size: 1.9rem;
       color: #ff6b81;
       letter-spacing: 3px;
       text-transform: uppercase;
     }
 
-    .logo p {
-      color: #444;
-      font-size: 0.82rem;
-      margin-top: 0.4rem;
-      letter-spacing: 1px;
-    }
+    .logo p { color: #444; font-size: 0.8rem; margin-top: 0.4rem; letter-spacing: 1px; }
 
     .candy-preview {
       display: none;
@@ -48,81 +43,55 @@
       margin-bottom: 1.5rem;
     }
 
-    .candy-preview img {
-      width: 72px;
-      height: 72px;
-      object-fit: contain;
-    }
+    .candy-preview img { width: 64px; height: 64px; object-fit: contain; }
+    .candy-preview p { color: #444; font-size: 0.72rem; margin-top: 0.3rem; }
+    .candy-preview strong { display: block; color: #aaa; font-size: 0.85rem; }
 
-    .candy-preview p {
-      color: #444;
-      font-size: 0.75rem;
-      margin-top: 0.3rem;
-    }
-
-    .candy-preview strong {
-      display: block;
-      color: #f0f0f0;
-      font-size: 0.9rem;
-    }
-
-    /* Name section */
-    .name-section {
-      background: #1a1a24;
-      border-radius: 16px;
-      padding: 1.2rem 1.5rem;
-      border: 1px solid #2a2a3a;
-      margin-bottom: 1rem;
+    /* Name */
+    .name-bar {
       display: flex;
       align-items: center;
       gap: 0.8rem;
+      background: #1a1a24;
+      border-radius: 14px;
+      padding: 0.9rem 1.1rem;
+      border: 1px solid #2a2a3a;
+      margin-bottom: 1.2rem;
     }
 
-    .name-section .avatar {
-      width: 36px;
-      height: 36px;
+    .avatar {
+      width: 34px; height: 34px;
       background: #ff6b81;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; font-weight: 700; flex-shrink: 0;
     }
 
-    .name-section .name-info { flex: 1; }
-    .name-section .name-info small { color: #555; font-size: 0.72rem; display: block; }
-    .name-section .name-info strong { font-size: 0.95rem; color: #f0f0f0; }
+    .name-info { flex: 1; }
+    .name-info small { color: #555; font-size: 0.7rem; display: block; }
+    .name-info strong { font-size: 0.9rem; }
 
-    .name-section button {
-      background: none;
-      border: 1px solid #2a2a3a;
-      color: #666;
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      cursor: pointer;
+    .edit-btn {
+      background: none; border: 1px solid #2a2a3a;
+      color: #555; border-radius: 8px;
+      padding: 3px 10px; font-size: 0.72rem; cursor: pointer;
     }
 
-    .name-section button:hover { border-color: #ff6b81; color: #ff6b81; }
+    .edit-btn:hover { border-color: #ff6b81; color: #ff6b81; }
 
-    /* Name input (hidden by default) */
     .name-input-wrap {
       background: #1a1a24;
-      border-radius: 16px;
-      padding: 1.2rem 1.5rem;
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
       border: 1px solid #2a2a3a;
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
       display: none;
     }
 
     .name-input-wrap label {
-      font-size: 0.75rem;
-      color: #555;
-      display: block;
-      margin-bottom: 0.5rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-size: 0.7rem; color: #555;
+      text-transform: uppercase; letter-spacing: 1px;
+      display: block; margin-bottom: 0.5rem;
     }
 
     .name-input-wrap input {
@@ -134,69 +103,60 @@
       color: #f0f0f0;
       font-size: 1rem;
       outline: none;
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.7rem;
     }
 
     .name-input-wrap input:focus { border-color: #ff6b81; }
 
-    /* Action buttons */
-    .actions { display: flex; flex-direction: column; gap: 0.8rem; }
+    /* Buttons */
+    .actions { display: flex; flex-direction: column; gap: 0.7rem; }
 
     .btn {
-      width: 100%;
-      padding: 1rem;
-      border-radius: 14px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 700;
+      width: 100%; padding: 1rem;
+      border-radius: 14px; border: none;
+      font-size: 0.95rem; font-weight: 700;
       cursor: pointer;
       transition: opacity 0.2s, transform 0.1s;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
+      display: flex; align-items: center;
+      justify-content: center; gap: 0.6rem;
     }
 
-    .btn:hover { opacity: 0.88; }
+    .btn:hover { opacity: 0.85; }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: #ff6b81; color: white; }
-    .btn-secondary {
-      background: #1a1a24;
-      color: #f0f0f0;
-      border: 1px solid #2a2a3a;
-    }
+    .btn-secondary { background: #1a1a24; color: #f0f0f0; border: 1px solid #2a2a3a; }
     .btn-secondary:hover { border-color: #ff6b81; }
     .btn-sm {
-      width: 100%;
-      padding: 0.7rem;
-      border-radius: 10px;
-      border: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #ff6b81;
-      color: white;
+      width: 100%; padding: 0.7rem;
+      border-radius: 10px; border: none;
+      background: #ff6b81; color: white;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
     }
 
-    /* Matchmaking overlay */
-    #matchmakingOverlay {
+    .disabled { opacity: 0.3; pointer-events: none; }
+
+    .error { color: #ff6b81; font-size: 0.82rem; text-align: center; min-height: 1.2rem; margin-top: 0.5rem; }
+
+    /* ── OVERLAYS ── */
+    .overlay {
       display: none;
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: rgba(15,15,19,0.97);
+      z-index: 500;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      gap: 1.5rem;
-      z-index: 500;
+      gap: 1.2rem;
+      padding: 2rem;
     }
 
-    #matchmakingOverlay.show { display: flex; }
+    .overlay.show { display: flex; }
 
-    .mm-spinner {
-      width: 48px;
-      height: 48px;
+    .overlay h2 { font-size: 1.2rem; color: #ff6b81; }
+
+    /* Matchmaking */
+    .spinner {
+      width: 44px; height: 44px;
       border: 3px solid #2a2a3a;
       border-top-color: #ff6b81;
       border-radius: 50%;
@@ -205,86 +165,108 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    #matchmakingOverlay h2 { color: #f0f0f0; font-size: 1.2rem; }
-    #matchmakingOverlay p { color: #555; font-size: 0.85rem; }
+    .mm-time { color: #555; font-size: 0.85rem; }
 
-    .btn-cancel {
-      background: none;
-      border: 1px solid #2a2a3a;
-      color: #666;
-      padding: 0.6rem 1.5rem;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
+    /* Lobby */
+    .lobby-list {
+      width: 100%; max-width: 360px;
+      max-height: 55vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
     }
 
-    .btn-cancel:hover { border-color: #ff6b81; color: #ff6b81; }
+    .lobby-player {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: #1a1a24;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+    }
 
-    /* Invite overlay */
-    #inviteOverlay {
+    .online-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .online-dot.available { background: #4ecca3; box-shadow: 0 0 6px #4ecca3; }
+    .online-dot.ingame { background: #f0c040; }
+
+    .lobby-player .p-name { flex: 1; font-size: 0.9rem; }
+    .lobby-player .p-status { font-size: 0.7rem; color: #555; }
+
+    .invite-btn {
+      background: #ff6b81;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .invite-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .lobby-empty { color: #444; font-size: 0.85rem; text-align: center; padding: 2rem; }
+
+    /* Invite received popup */
+    .invite-popup {
       display: none;
       position: fixed;
-      inset: 0;
-      background: rgba(15,15,19,0.97);
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 1.2rem;
-      z-index: 500;
-      padding: 2rem;
+      bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a24;
+      border: 1px solid #ff6b81;
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      z-index: 600;
+      width: 90%; max-width: 340px;
+      box-shadow: 0 0 30px rgba(255,107,129,0.2);
     }
 
-    #inviteOverlay.show { display: flex; }
-    #inviteOverlay h2 { color: #ff6b81; font-size: 1.3rem; }
+    .invite-popup.show { display: block; }
+    .invite-popup p { font-size: 0.9rem; margin-bottom: 1rem; }
+    .invite-popup p span { color: #ff6b81; font-weight: 700; }
+    .invite-popup-btns { display: flex; gap: 0.6rem; }
+    .invite-popup-btns button {
+      flex: 1; padding: 0.6rem;
+      border-radius: 10px; border: none;
+      font-weight: 600; cursor: pointer; font-size: 0.85rem;
+    }
 
-    .invite-card {
+    .btn-accept { background: #4ecca3; color: #0f0f13; }
+    .btn-decline { background: #2a2a3a; color: #aaa; }
+
+    /* Create session overlay */
+    .session-card {
       background: #1a1a24;
       border: 1px solid #2a2a3a;
       border-radius: 16px;
       padding: 1.5rem 2rem;
       text-align: center;
-      width: 100%;
-      max-width: 320px;
+      width: 100%; max-width: 320px;
     }
 
-    .invite-card p { color: #555; font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
-    .invite-card .code { font-size: 2.2rem; font-weight: 900; color: #ff6b81; letter-spacing: 8px; }
-    .invite-card .link { font-size: 0.75rem; color: #444; margin-top: 0.8rem; word-break: break-all; }
+    .session-card p { color: #555; font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
+    .session-card .code { font-size: 2rem; font-weight: 900; color: #ff6b81; letter-spacing: 8px; }
+    .session-card .link { font-size: 0.72rem; color: #444; margin-top: 0.6rem; word-break: break-all; }
 
-    .invite-actions { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; max-width: 320px; }
+    .session-actions { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; max-width: 320px; }
 
-    .error {
-      color: #ff6b81;
-      font-size: 0.85rem;
-      text-align: center;
-      min-height: 1.2rem;
+    .btn-cancel {
+      background: none; border: 1px solid #2a2a3a;
+      color: #555; padding: 0.6rem 1.5rem;
+      border-radius: 10px; cursor: pointer; font-size: 0.82rem;
     }
 
-    /* Join code input */
-    .join-wrap {
-      display: none;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
+    .btn-cancel:hover { border-color: #ff6b81; color: #ff6b81; }
 
-    .join-wrap.show { display: flex; }
-
-    .join-wrap input {
-      width: 100%;
-      background: #1a1a24;
-      border: 1px solid #2a2a3a;
-      border-radius: 10px;
-      padding: 0.8rem 1rem;
-      color: #f0f0f0;
-      font-size: 1.1rem;
-      letter-spacing: 4px;
-      text-align: center;
-      text-transform: uppercase;
-      outline: none;
-    }
-
-    .join-wrap input:focus { border-color: #ff6b81; }
+    .copied-msg { color: #4ecca3; font-size: 0.8rem; min-height: 1rem; text-align: center; }
   </style>
 </head>
 <body>
@@ -301,97 +283,106 @@
     <strong id="todayName"></strong>
   </div>
 
-  <!-- Name display -->
-  <div class="name-section" id="nameSection">
-    <div class="avatar" id="nameAvatar">?</div>
+  <!-- Name bar -->
+  <div class="name-bar" id="nameBar">
+    <div class="avatar" id="avatar">?</div>
     <div class="name-info">
       <small>Playing as</small>
       <strong id="nameDisplay">—</strong>
     </div>
-    <button onclick="editName()">Edit</button>
+    <button class="edit-btn" onclick="editName()">Edit</button>
   </div>
 
-  <!-- Name input (shown when no name set) -->
+  <!-- Name input -->
   <div class="name-input-wrap" id="nameInputWrap">
-    <label>Your name</label>
-    <input type="text" id="nameInput" placeholder="Enter your name" maxlength="20">
-    <button class="btn-sm" onclick="saveName()">Save name</button>
+    <label>Choose your name</label>
+    <input type="text" id="nameInput" placeholder="Your name" maxlength="20"
+      onkeydown="if(event.key==='Enter') saveName()">
+    <button class="btn-sm" onclick="saveName()">Save</button>
   </div>
 
-  <!-- Actions -->
+  <!-- Main actions -->
   <div class="actions" id="actions">
-    <button class="btn btn-primary" onclick="playRandom()">⚡ Play with Stranger</button>
-    <button class="btn btn-secondary" onclick="inviteFriend()">🔗 Invite a Friend</button>
-    <button class="btn btn-secondary" onclick="toggleJoin()">🎯 Join with Code</button>
-  </div>
-
-  <!-- Join code input (toggled) -->
-  <div class="join-wrap" id="joinWrap" style="margin-top:0.8rem">
-    <input type="text" id="joinCode" placeholder="ENTER CODE" maxlength="5">
-    <button class="btn-sm" onclick="joinWithCode()">Join Game</button>
+    <button class="btn btn-primary" id="btnPlay" onclick="playGame()">⚡ Play Game</button>
+    <button class="btn btn-secondary" id="btnLobby" onclick="openLobby()">🏠 Lobby</button>
+    <button class="btn btn-secondary" id="btnCreate" onclick="createSession()">🔗 Create Session</button>
   </div>
 
   <div class="error" id="error"></div>
 </div>
 
 <!-- Matchmaking overlay -->
-<div id="matchmakingOverlay">
-  <div class="mm-spinner"></div>
+<div class="overlay" id="mmOverlay">
+  <div class="spinner"></div>
   <h2>Finding opponent...</h2>
-  <p id="mmWaitTime">0s</p>
-  <button class="btn-cancel" onclick="cancelMatchmaking()">Cancel</button>
+  <p class="mm-time" id="mmTime">0s</p>
+  <button class="btn-cancel" onclick="cancelMM()">Cancel</button>
 </div>
 
-<!-- Invite overlay -->
-<div id="inviteOverlay">
-  <h2>🍬 Invite a Friend</h2>
-  <div class="invite-card">
+<!-- Lobby overlay -->
+<div class="overlay" id="lobbyOverlay">
+  <h2>🏠 Lobby</h2>
+  <div class="lobby-list" id="lobbyList">
+    <p class="lobby-empty">No one else online right now...</p>
+  </div>
+  <button class="btn-cancel" onclick="closeLobby()">Leave Lobby</button>
+</div>
+
+<!-- Create session overlay -->
+<div class="overlay" id="sessionOverlay">
+  <h2>🔗 Create Session</h2>
+  <div class="session-card">
     <p>ROOM CODE</p>
-    <div class="code" id="inviteCode">—</div>
-    <div class="link" id="inviteLink">—</div>
+    <div class="code" id="sessionCode">—</div>
+    <div class="link" id="sessionLink">—</div>
   </div>
-  <div class="invite-actions">
-    <button class="btn-sm" onclick="copyInviteLink()">📋 Copy invite link</button>
-    <button class="btn-cancel" onclick="closeInvite()">Cancel</button>
+  <div class="session-actions">
+    <button class="btn-sm" onclick="copySessionLink()">📋 Copy invite link</button>
+    <div class="copied-msg" id="copiedMsg"></div>
+    <button class="btn-cancel" onclick="closeSession()">Cancel</button>
   </div>
-  <p id="inviteStatus" style="color:#555; font-size:0.82rem;">Waiting for opponent...</p>
+  <p style="color:#555; font-size:0.8rem;" id="sessionStatus">Waiting for opponent...</p>
+</div>
+
+<!-- Invite received popup -->
+<div class="invite-popup" id="invitePopup">
+  <p><span id="inviteFromName">Someone</span> wants to play!</p>
+  <div class="invite-popup-btns">
+    <button class="btn-accept" onclick="acceptInvite()">Accept</button>
+    <button class="btn-decline" onclick="declineInvite()">Decline</button>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
   let playerName = localStorage.getItem('playerName') || '';
-  let mmTimer = null;
-  let mmSeconds = 0;
-  let currentRoomCode = null;
-  let invitePollInterval = null;
+  let mmTimer = null, mmSecs = 0;
+  let sessionPollInterval = null;
+  let pendingInviteFrom = null;
+  let inLobby = false;
 
   // Init
   initName();
   loadTodayCandy();
 
   function initName() {
-    if (playerName) {
-      showNameDisplay();
-    } else {
-      showNameInput();
-    }
+    if (playerName) showNameBar();
+    else showNameInput();
   }
 
-  function showNameDisplay() {
-    document.getElementById('nameSection').style.display = 'flex';
+  function showNameBar() {
+    document.getElementById('nameBar').style.display = 'flex';
     document.getElementById('nameInputWrap').style.display = 'none';
     document.getElementById('nameDisplay').textContent = playerName;
-    document.getElementById('nameAvatar').textContent = playerName.charAt(0).toUpperCase();
-    document.getElementById('actions').style.opacity = '1';
-    document.getElementById('actions').style.pointerEvents = 'auto';
+    document.getElementById('avatar').textContent = playerName.charAt(0).toUpperCase();
+    document.getElementById('actions').classList.remove('disabled');
   }
 
   function showNameInput() {
-    document.getElementById('nameSection').style.display = 'none';
+    document.getElementById('nameBar').style.display = 'none';
     document.getElementById('nameInputWrap').style.display = 'block';
-    document.getElementById('actions').style.opacity = '0.3';
-    document.getElementById('actions').style.pointerEvents = 'none';
+    document.getElementById('actions').classList.add('disabled');
   }
 
   function saveName() {
@@ -399,8 +390,9 @@
     if (!val) return showError('Enter a name first.');
     playerName = val;
     localStorage.setItem('playerName', playerName);
-    showNameDisplay();
+    showNameBar();
     hideError();
+    socket.emit('goOnline', { playerName });
   }
 
   function editName() {
@@ -408,7 +400,6 @@
     showNameInput();
   }
 
-  // Today's candy preview
   async function loadTodayCandy() {
     try {
       const res = await fetch('/api/candy/today');
@@ -421,38 +412,106 @@
     } catch (e) {}
   }
 
-  // Play with stranger — matchmaking via Socket.IO
-  function playRandom() {
+  // Go online when page loads (if name already set)
+  if (playerName) socket.emit('goOnline', { playerName });
+
+  // ── PLAY GAME (matchmaking) ──
+  function playGame() {
     if (!playerName) return showError('Save your name first.');
     hideError();
-    mmSeconds = 0;
-    document.getElementById('mmWaitTime').textContent = '0s';
-    document.getElementById('matchmakingOverlay').classList.add('show');
-
+    mmSecs = 0;
+    document.getElementById('mmTime').textContent = '0s';
+    document.getElementById('mmOverlay').classList.add('show');
     mmTimer = setInterval(() => {
-      mmSeconds++;
-      document.getElementById('mmWaitTime').textContent = mmSeconds + 's';
+      mmSecs++;
+      document.getElementById('mmTime').textContent = mmSecs + 's';
     }, 1000);
-
     socket.emit('joinMatchmaking', { playerName });
   }
 
-  function cancelMatchmaking() {
+  function cancelMM() {
     clearInterval(mmTimer);
     socket.emit('leaveMatchmaking');
-    document.getElementById('matchmakingOverlay').classList.remove('show');
+    document.getElementById('mmOverlay').classList.remove('show');
   }
 
-  // Matchmaking success — server found a match
-  socket.on('matchFound', ({ roomCode }) => {
-    clearInterval(mmTimer);
-    document.getElementById('matchmakingOverlay').classList.remove('show');
-    localStorage.setItem('playerName', playerName);
-    window.location.href = `/game/${roomCode}`;
+  // ── LOBBY ──
+  function openLobby() {
+    if (!playerName) return showError('Save your name first.');
+    hideError();
+    inLobby = true;
+    document.getElementById('lobbyOverlay').classList.add('show');
+    socket.emit('goOnline', { playerName });
+  }
+
+  function closeLobby() {
+    inLobby = false;
+    document.getElementById('lobbyOverlay').classList.remove('show');
+  }
+
+  socket.on('lobbyUpdate', (players) => {
+    if (!inLobby) return;
+    const list = document.getElementById('lobbyList');
+    const others = players.filter(p => p.socketId !== socket.id);
+
+    if (!others.length) {
+      list.innerHTML = '<p class="lobby-empty">No one else online right now...</p>';
+      return;
+    }
+
+    list.innerHTML = others.map(p => `
+      <div class="lobby-player">
+        <div class="online-dot ${p.status === 'ingame' ? 'ingame' : 'available'}"></div>
+        <div style="flex:1">
+          <div class="p-name">${p.name}</div>
+          <div class="p-status">${p.status === 'ingame' ? 'In a game' : 'Available'}</div>
+        </div>
+        <button class="invite-btn"
+          onclick="sendInvite('${p.socketId}', '${p.name.replace(/'/g, "\\'")}')"
+          ${p.status === 'ingame' ? 'disabled' : ''}>
+          Invite
+        </button>
+      </div>
+    `).join('');
   });
 
-  // Invite a friend
-  async function inviteFriend() {
+  function sendInvite(toSocketId, toName) {
+    socket.emit('sendInvite', { toSocketId, fromName: playerName });
+    showError(`Invite sent to ${toName}...`);
+  }
+
+  // ── INVITE RECEIVED ──
+  socket.on('inviteReceived', ({ fromSocketId, fromName }) => {
+    pendingInviteFrom = { socketId: fromSocketId, name: fromName };
+    document.getElementById('inviteFromName').textContent = fromName;
+    document.getElementById('invitePopup').classList.add('show');
+  });
+
+  socket.on('inviteCancelled', () => {
+    pendingInviteFrom = null;
+    document.getElementById('invitePopup').classList.remove('show');
+  });
+
+  socket.on('inviteDeclined', ({ byName }) => {
+    showError(`${byName} declined your invite.`);
+  });
+
+  function acceptInvite() {
+    if (!pendingInviteFrom) return;
+    document.getElementById('invitePopup').classList.remove('show');
+    socket.emit('acceptInvite', { fromSocketId: pendingInviteFrom.socketId, playerName });
+    pendingInviteFrom = null;
+  }
+
+  function declineInvite() {
+    if (!pendingInviteFrom) return;
+    socket.emit('declineInvite', { fromSocketId: pendingInviteFrom.socketId, playerName });
+    document.getElementById('invitePopup').classList.remove('show');
+    pendingInviteFrom = null;
+  }
+
+  // ── CREATE SESSION ──
+  async function createSession() {
     if (!playerName) return showError('Save your name first.');
     hideError();
 
@@ -465,81 +524,59 @@
       const data = await res.json();
       if (!data.success) return showError(data.error);
 
-      currentRoomCode = data.roomCode;
       const link = `${window.location.origin}/game/${data.roomCode}`;
+      document.getElementById('sessionCode').textContent = data.roomCode;
+      document.getElementById('sessionLink').textContent = link;
+      document.getElementById('sessionOverlay').classList.add('show');
 
-      document.getElementById('inviteCode').textContent = data.roomCode;
-      document.getElementById('inviteLink').textContent = link;
-      document.getElementById('inviteOverlay').classList.add('show');
-
-      // Poll until opponent joins
-      invitePollInterval = setInterval(async () => {
+      sessionPollInterval = setInterval(async () => {
         const r = await fetch(`/api/game/${data.roomCode}`);
         const g = await r.json();
         if (g.status === 'in_progress') {
-          clearInterval(invitePollInterval);
+          clearInterval(sessionPollInterval);
           window.location.href = `/game/${data.roomCode}`;
         }
       }, 2000);
 
     } catch (err) {
-      showError('Could not create room.');
+      showError('Could not create session.');
     }
   }
 
-  function closeInvite() {
-    clearInterval(invitePollInterval);
-    document.getElementById('inviteOverlay').classList.remove('show');
-  }
-
-  function copyInviteLink() {
-    const link = document.getElementById('inviteLink').textContent;
+  function copySessionLink() {
+    const link = document.getElementById('sessionLink').textContent;
     navigator.clipboard.writeText(link).then(() => {
-      document.getElementById('inviteStatus').textContent = '✅ Link copied!';
-      setTimeout(() => {
-        document.getElementById('inviteStatus').textContent = 'Waiting for opponent...';
-      }, 2000);
+      document.getElementById('copiedMsg').textContent = '✅ Copied!';
+      setTimeout(() => document.getElementById('copiedMsg').textContent = '', 2000);
     });
   }
 
-  // Join with code
-  function toggleJoin() {
-    const wrap = document.getElementById('joinWrap');
-    wrap.classList.toggle('show');
-    if (wrap.classList.contains('show')) {
-      document.getElementById('joinCode').focus();
-    }
+  function closeSession() {
+    clearInterval(sessionPollInterval);
+    document.getElementById('sessionOverlay').classList.remove('show');
   }
 
-  async function joinWithCode() {
-    if (!playerName) return showError('Save your name first.');
-    const code = document.getElementById('joinCode').value.trim().toUpperCase();
-    if (!code) return showError('Enter a room code.');
+  // ── MATCH FOUND (any path) ──
+  socket.on('matchFound', ({ roomCode }) => {
+    clearInterval(mmTimer);
+    document.getElementById('mmOverlay').classList.remove('show');
+    document.getElementById('lobbyOverlay').classList.remove('show');
+    window.location.href = `/game/${roomCode}`;
+  });
 
-    try {
-      const res = await fetch('/api/game/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerName, roomCode: code })
-      });
-      const data = await res.json();
-      if (data.success) {
-        window.location.href = `/game/${data.roomCode}`;
-      } else {
-        showError(data.error);
-      }
-    } catch (err) {
-      showError('Could not join room.');
-    }
-  }
+  socket.on('matchError', ({ error }) => {
+    clearInterval(mmTimer);
+    document.getElementById('mmOverlay').classList.remove('show');
+    showError(error);
+  });
 
-  function showError(msg) {
-    document.getElementById('error').textContent = msg;
-  }
+  socket.on('inviteError', ({ error }) => {
+    document.getElementById('invitePopup').classList.remove('show');
+    showError(error);
+  });
 
-  function hideError() {
-    document.getElementById('error').textContent = '';
-  }
+  function showError(msg) { document.getElementById('error').textContent = msg; }
+  function hideError() { document.getElementById('error').textContent = ''; }
 </script>
 </body>
 </html>
