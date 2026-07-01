@@ -11,6 +11,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+console.log('☁️ Cloudinary config:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY ? '✅ set' : '❌ missing',
+  api_secret: process.env.CLOUDINARY_API_SECRET ? '✅ set' : '❌ missing'
+});
+
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -54,6 +60,10 @@ router.get('/today', async (req, res) => {
 
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
+    console.log('📤 Upload request received');
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+
     const { name, scheduledDate } = req.body;
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     if (!name) return res.status(400).json({ error: 'Candy name is required' });
@@ -80,11 +90,22 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     });
 
     await candy.save();
-    res.json({ success: true, candy: { id: candy._id, name: candy.name, imageUrl: candy.imageUrl, colorPalette: candy.colorPalette, queuePosition: candy.queuePosition } });
+    console.log('✅ Candy saved:', candy.name);
+
+    res.json({
+      success: true,
+      candy: {
+        id: candy._id,
+        name: candy.name,
+        imageUrl: candy.imageUrl,
+        colorPalette: candy.colorPalette,
+        queuePosition: candy.queuePosition
+      }
+    });
 
   } catch (err) {
-    console.error('Upload error:', err);
-    res.status(500).json({ error: err.message });
+    console.error('❌ Upload error details:', err);
+    res.status(500).json({ error: err.message || 'Unknown upload error' });
   }
 });
 
