@@ -3,59 +3,86 @@ const router = express.Router();
 const GameSession = require('../models/GameSession');
 const Candy = require('../models/Candy');
 
-// Genereer een random 5-letter room code
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-// Genereer het speelveld — random posities voor N candies
-function generateField(size = 30) {
+function generateField(size = 25) {
   const positions = [];
-  const margin = 8; // % marge van de randen
+  const minDist = 13; // minimum % distance between candy centers
+  const margin = 10;
+  const maxAttempts = 200;
 
-  for (let i = 0; i < size; i++) {
-    let x, y, overlapping;
-    let attempts = 0;
+  let placed = 0;
+  let totalAttempts = 0;
 
-    do {
-      overlapping = false;
-      x = margin + Math.random() * (100 - margin * 2);
-      y = margin + Math.random() * (100 - margin * 2);
+  while (placed < size && totalAttempts < maxAttempts * size) {
+    const x = margin + Math.random() * (100 - margin * 2);
+    const y = margin + Math.random() * (100 - margin * 2);
+    totalAttempts++;
 
-      // Vermijd overlap met bestaande candies
-      for (const pos of positions) {
-        const dx = x - pos.x;
-        const dy = y - pos.y;
-        if (Math.sqrt(dx * dx + dy * dy) < 10) {
-          overlapping = true;
-          break;
-        }
+    let overlapping = false;
+    for (const pos of positions) {
+      const dx = x - pos.x;
+      const dy = y - pos.y;
+      if (Math.sqrt(dx * dx + dy * dy) < minDist) {
+        overlapping = true;
+        break;
       }
-      attempts++;
-    } while (overlapping && attempts < 50);
+    }
 
-    positions.push({
-      x: Math.round(x * 10) / 10,
-      y: Math.round(y * 10) / 10,
-      rotation: Math.floor(Math.random() * 360)
-    });
+    if (!overlapping) {
+      positions.push({
+        x: Math.round(x * 10) / 10,
+        y: Math.round(y * 10) / 10,
+        rotation: Math.floor(Math.random() * 360)
+      });
+      placed++;
+    }
   }
 
   return positions;
 }
 
-// POST /api/game/create — maak een nieuwe room aan
+router.get('/next-date', async (req, res) => {
+  try {
+    const lastCandy = await Candy.findOne({ scheduledDate: { $ne: null } }).sort({ scheduledDate: -1 });
+    const baseDate = lastCandy ? new Date(lastCandy.scheduledDate) : new Date();
+    baseDate.setDate(baseDate.getDate() + 1);
+    res.json({ nextDate: baseDate.toISOString().split('T')[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/queue', async (req, res) => {
+  try {
+    const candies = await Candy.find().sort({ queuePosition: 1 });
+    res.json(candies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/today', async (req, res) => {
+  try {
+    const candy = await Candy.findOne({ status: 'active' });
+    if (!candy) return res.status(404).json({ error: 'No active candy today' });
+    res.json(candy);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/create', async (req, res) => {
   try {
     const { playerName } = req.body;
     if (!playerName) return res.status(400).json({ error: 'Player name is required' });
 
-    // Haal de actieve candy op
     const candy = await Candy.findOne({ status: 'active' });
-    if (!candy) return res.status(404).json({ error: 'No active candy today — host must activate one first' });
+    if (!candy) return res.status(404).json({ error: 'No active candy today' });
 
-    // Genereer unieke room code
     let roomCode;
     let exists = true;
     while (exists) {
@@ -63,7 +90,7 @@ router.post('/create', async (req, res) => {
       exists = await GameSession.findOne({ roomCode });
     }
 
-    const field = generateField(30);
+    const field = generateField(25);
     const poisonedIndex = Math.floor(Math.random() * field.length);
 
     const session = new GameSession({
@@ -100,7 +127,6 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// GET /api/game/:roomCode — haal room info op
 router.get('/:roomCode', async (req, res) => {
   try {
     const session = await GameSession.findOne({ roomCode: req.params.roomCode }).populate('candy');
@@ -124,11 +150,10 @@ router.get('/:roomCode', async (req, res) => {
   }
 });
 
-// POST /api/game/join — join een bestaande room
 router.post('/join', async (req, res) => {
   try {
     const { roomCode, playerName } = req.body;
-    if (!roomCode || !playerName) return res.status(400).json({ error: 'Room code and player name are required' });
+    if (!roomCode || !playerName) return res.status(400).json({ error: 'Room code and player name required' });
 
     const session = await GameSession.findOne({ roomCode: roomCode.toUpperCase() }).populate('candy');
     if (!session) return res.status(404).json({ error: 'Room not found' });
