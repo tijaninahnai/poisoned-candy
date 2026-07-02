@@ -1,3 +1,4 @@
+cat > server/index.js << 'EOF'
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const express = require('express');
@@ -201,6 +202,7 @@ io.on('connection', (socket) => {
         session.status = 'finished';
         await session.save();
 
+        // Send each player their own result
         for (const p of session.players) {
           const isPoison = p.pickedIndex === session.poisonedIndex;
           io.to(p.socketId).emit('pickResult', {
@@ -211,6 +213,7 @@ io.on('connection', (socket) => {
           });
         }
 
+        // Tell each player what opponent picked
         const [p1, p2] = session.players;
         io.to(p1.socketId).emit('opponentPickResult', {
           playerName: p2.name,
@@ -231,7 +234,7 @@ io.on('connection', (socket) => {
       console.error('Pick error:', err);
     }
   });
-  
+
   socket.on('disconnect', () => {
     const i = matchmakingQueue.findIndex(p => p.socketId === socket.id);
     if (i !== -1) matchmakingQueue.splice(i, 1);
@@ -245,3 +248,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🍬 Poisoned Candy server running on port ${PORT}`);
 });
+EOF
