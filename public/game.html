@@ -32,6 +32,7 @@
     .room-code span { color: #ff6b81; font-weight: 700; font-size: 0.85rem; }
     .hud-status { font-size: 0.78rem; color: #555; }
     .hud-status.playing { color: #4ecca3; }
+    .hud-status.waiting { color: #f0c040; }
 
     #field {
       position: fixed;
@@ -53,23 +54,25 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      mix-blend-mode: screen;
       pointer-events: none;
-      /* No background, no border radius — pure transparent PNG */
+      mix-blend-mode: screen;
     }
 
     .candy-item:hover {
-      filter: drop-shadow(0 0 10px rgba(255,107,129,0.7)) brightness(1.15);
+      filter: drop-shadow(0 0 10px rgba(255,107,129,0.7)) brightness(1.2);
       z-index: 10;
     }
 
     .candy-item.picked { pointer-events: none; }
-    .candy-item.dimmed { opacity: 0.25; filter: none; }
+    .candy-item.dimmed { opacity: 0.15; transition: opacity 0.3s; }
+    .candy-item.highlight {
+      filter: drop-shadow(0 0 16px rgba(255,107,129,1)) brightness(1.4);
+      z-index: 20;
+    }
 
     /* Waiting overlay */
     #waitingOverlay {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: rgba(15,15,19,0.93);
       display: flex;
       flex-direction: column;
@@ -95,26 +98,78 @@
     .pulse { animation: pulse 1.5s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
-    .wait-small { color: #444; font-size: 0.8rem; }
-
     .btn-leave {
-      background: none;
-      border: 1px solid #2a2a3a;
-      color: #555;
-      padding: 0.5rem 1.2rem;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.8rem;
+      background: none; border: 1px solid #2a2a3a;
+      color: #555; padding: 0.5rem 1.2rem;
+      border-radius: 10px; cursor: pointer; font-size: 0.8rem;
     }
 
     .btn-leave:hover { border-color: #ff6b81; color: #ff6b81; }
+
+    /* Result overlay */
+    #resultOverlay {
+      position: fixed; inset: 0;
+      background: rgba(15,15,19,0.96);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      z-index: 300;
+    }
+
+    #resultOverlay.show { display: flex; }
+
+    .result-emoji { font-size: 5rem; line-height: 1; }
+
+    .result-title {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .result-title.won { color: #4ecca3; }
+    .result-title.lost { color: #ff6b81; }
+
+    .result-sub { color: #555; font-size: 0.9rem; text-align: center; }
+
+    .result-btns { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
+
+    .btn-play-again {
+      background: #ff6b81; color: white;
+      border: none; border-radius: 14px;
+      padding: 0.9rem 1.8rem;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-home {
+      background: #1a1a24; color: #aaa;
+      border: 1px solid #2a2a3a;
+      border-radius: 14px;
+      padding: 0.9rem 1.8rem;
+      font-size: 1rem; cursor: pointer;
+    }
+
+    /* Opponent picked indicator */
+    .opponent-badge {
+      position: absolute;
+      top: -8px; right: -8px;
+      background: #f0c040;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      font-size: 0.6rem;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 15;
+    }
   </style>
 </head>
 <body>
 
 <div id="hud">
   <div class="room-code">ROOM <span id="hudCode">—</span></div>
-  <div class="hud-status" id="hudStatus">Waiting...</div>
+  <div class="hud-status waiting" id="hudStatus">Waiting...</div>
 </div>
 
 <div id="field"></div>
@@ -125,8 +180,18 @@
     <p>ROOM CODE</p>
     <div class="code" id="overlayCode">—</div>
   </div>
-  <small class="wait-small pulse">Waiting for opponent to join...</small>
+  <small class="pulse" style="color:#444">Waiting for opponent to join...</small>
   <button class="btn-leave" onclick="leaveGame()">Leave</button>
+</div>
+
+<div id="resultOverlay">
+  <div class="result-emoji" id="resultEmoji">🍬</div>
+  <div class="result-title" id="resultTitle">—</div>
+  <div class="result-sub" id="resultSub">—</div>
+  <div class="result-btns">
+    <button class="btn-play-again" onclick="playAgain()">Play Again</button>
+    <button class="btn-home" onclick="leaveGame()">Home</button>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -134,7 +199,10 @@
   const socket = io();
   const roomCode = window.location.pathname.split('/').pop().toUpperCase();
   const playerName = localStorage.getItem('playerName') || 'Player';
-  const playerIndex = parseInt(localStorage.getItem('playerIndex') || '0');
+
+  let gameData = null;
+  let myPicked = false;
+  let colorPalette = ['#ff6b81', '#ffffff', '#c0392b'];
 
   document.getElementById('hudCode').textContent = roomCode;
   document.getElementById('overlayCode').textContent = roomCode;
@@ -148,14 +216,12 @@
         return;
       }
 
-      const data = await res.json();
-      renderField(data);
+      gameData = await res.json();
+      colorPalette = gameData.candy.colorPalette || colorPalette;
+      renderField(gameData);
 
-      if (data.status === 'in_progress') {
-        hideWaiting();
-      }
+      if (gameData.status === 'in_progress') hideWaiting();
 
-      // Join socket room
       socket.emit('joinRoom', { roomCode, playerName });
 
     } catch (err) {
@@ -170,7 +236,7 @@
     data.field.forEach((pos, index) => {
       const el = document.createElement('div');
       el.className = 'candy-item';
-      el.dataset.index = index;
+      el.id = `candy-${index}`;
       el.style.left = `calc(${pos.x}% - 40px)`;
       el.style.top = `calc(${pos.y}% - 40px)`;
       el.style.transform = `rotate(${pos.rotation}deg)`;
@@ -180,7 +246,7 @@
       img.alt = data.candy.name;
 
       el.appendChild(img);
-      el.addEventListener('click', () => pickCandy(index, el, data.candy.colorPalette));
+      el.addEventListener('click', () => pickCandy(index, el));
       field.appendChild(el);
     });
   }
@@ -191,25 +257,92 @@
     document.getElementById('hudStatus').className = 'hud-status playing';
   }
 
-  function pickCandy(index, el, colorPalette) {
+  function pickCandy(index, el) {
+    if (myPicked) return;
+    myPicked = true;
+
+    // Dim all others
     document.querySelectorAll('.candy-item').forEach(c => {
       c.classList.add('picked');
       if (c !== el) c.classList.add('dimmed');
     });
 
-    el.style.filter = 'drop-shadow(0 0 20px rgba(255,107,129,1)) brightness(1.3)';
+    el.classList.add('highlight');
+    el.style.transform = el.style.transform + ' scale(1.2)';
 
-    // Emit pick to server — Step 7/8 will handle the response
     socket.emit('pickCandy', { roomCode, playerName, index });
+    document.getElementById('hudStatus').textContent = 'Waiting for result...';
+    document.getElementById('hudStatus').className = 'hud-status waiting';
+  }
+
+  // My result
+  socket.on('pickResult', ({ index, isPoison, result, poisonedIndex }) => {
+    setTimeout(() => showResult(result, isPoison, poisonedIndex), 600);
+  });
+
+  // Opponent picked — show badge on their candy
+  socket.on('opponentPickResult', ({ playerName: oppName, index, isPoison, poisonedIndex }) => {
+    const el = document.getElementById(`candy-${index}`);
+    if (el) {
+      const badge = document.createElement('div');
+      badge.className = 'opponent-badge';
+      badge.textContent = '👤';
+      el.appendChild(badge);
+    }
+
+    // If I haven't picked yet, reveal poison after opponent picks
+    if (!myPicked) {
+      document.getElementById('hudStatus').textContent = `${oppName} picked — now your turn!`;
+    }
+  });
+
+  function showResult(result, isPoison, poisonedIndex) {
+    // Highlight the actual poison candy
+    const poisonEl = document.getElementById(`candy-${poisonedIndex}`);
+    if (poisonEl) {
+      poisonEl.style.filter = 'drop-shadow(0 0 20px rgba(255,107,129,1))';
+      poisonEl.classList.remove('dimmed');
+    }
+
+    const overlay = document.getElementById('resultOverlay');
+    const emoji = document.getElementById('resultEmoji');
+    const title = document.getElementById('resultTitle');
+    const sub = document.getElementById('resultSub');
+
+    if (result === 'won') {
+      emoji.textContent = '🎉';
+      title.textContent = 'You Won!';
+      title.className = 'result-title won';
+      sub.textContent = isPoison
+        ? 'Lucky escape — that was the poisoned one!'
+        : 'Safe choice. Your opponent got poisoned!';
+    } else {
+      emoji.textContent = '☠️';
+      title.textContent = 'Poisoned!';
+      title.className = 'result-title lost';
+      sub.textContent = 'You picked the poisoned candy. Better luck next time!';
+    }
+
+    overlay.classList.add('show');
+  }
+
+  function playAgain() {
+    window.location.href = '/';
   }
 
   function leaveGame() {
     window.location.href = '/';
   }
 
-  // Socket events — expanded in Step 6
-  socket.on('opponentJoined', () => {
+  socket.on('opponentJoined', ({ playerName: oppName }) => {
     hideWaiting();
+    document.getElementById('hudStatus').textContent = `${oppName} joined — pick a candy!`;
+    setTimeout(() => {
+      if (document.getElementById('hudStatus').textContent.includes('joined')) {
+        document.getElementById('hudStatus').textContent = 'Pick a candy!';
+        document.getElementById('hudStatus').className = 'hud-status playing';
+      }
+    }, 3000);
   });
 
   loadGame();
