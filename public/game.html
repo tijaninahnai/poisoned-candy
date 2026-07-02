@@ -8,7 +8,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #0f0f13;
+      background: #111118;
       color: #f0f0f0;
       font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
@@ -22,7 +22,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(15,15,19,0.85);
+      background: rgba(17,17,24,0.9);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid #1a1a24;
       z-index: 100;
@@ -42,38 +42,51 @@
 
     .candy-item {
       position: absolute;
-      width: 80px;
-      height: 80px;
-      transform-origin: center;
+      width: 82px;
+      height: 82px;
       cursor: pointer;
-      transition: transform 0.15s, filter 0.15s;
       user-select: none;
+      transition: filter 0.2s;
     }
 
-    .candy-item img {
+    /* White bg pill that contains the candy image */
+    .candy-inner {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      pointer-events: none;
-      mix-blend-mode: screen;
+      background: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
 
-    .candy-item:hover {
-      filter: drop-shadow(0 0 10px rgba(255,107,129,0.7)) brightness(1.2);
-      z-index: 10;
+    .candy-inner img {
+      width: 86%;
+      height: 86%;
+      object-fit: contain;
+      pointer-events: none;
+      display: block;
+    }
+
+    .candy-item:hover .candy-inner {
+      transform: scale(1.1);
+      box-shadow: 0 0 16px rgba(255,107,129,0.5);
     }
 
     .candy-item.picked { pointer-events: none; }
-    .candy-item.dimmed { opacity: 0.15; transition: opacity 0.3s; }
-    .candy-item.highlight {
-      filter: drop-shadow(0 0 16px rgba(255,107,129,1)) brightness(1.4);
-      z-index: 20;
+
+    .candy-item.dimmed .candy-inner {
+      opacity: 0.18;
+      box-shadow: none;
     }
 
     /* Waiting overlay */
     #waitingOverlay {
       position: fixed; inset: 0;
-      background: rgba(15,15,19,0.93);
+      background: rgba(17,17,24,0.93);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -106,10 +119,26 @@
 
     .btn-leave:hover { border-color: #ff6b81; color: #ff6b81; }
 
+    /* Waiting for opponent pick */
+    #waitingPick {
+      display: none;
+      position: fixed;
+      bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a24;
+      border: 1px solid #2a2a3a;
+      border-radius: 14px;
+      padding: 0.8rem 1.4rem;
+      font-size: 0.82rem;
+      color: #666;
+      z-index: 150;
+      white-space: nowrap;
+    }
+
     /* Result overlay */
     #resultOverlay {
       position: fixed; inset: 0;
-      background: rgba(15,15,19,0.96);
+      background: rgba(17,17,24,0.97);
       display: none;
       flex-direction: column;
       align-items: center;
@@ -132,7 +161,7 @@
     .result-title.won { color: #4ecca3; }
     .result-title.lost { color: #ff6b81; }
 
-    .result-sub { color: #555; font-size: 0.9rem; text-align: center; }
+    .result-sub { color: #555; font-size: 0.9rem; text-align: center; max-width: 280px; }
 
     .result-btns { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
 
@@ -140,8 +169,7 @@
       background: #ff6b81; color: white;
       border: none; border-radius: 14px;
       padding: 0.9rem 1.8rem;
-      font-size: 1rem; font-weight: 700;
-      cursor: pointer;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
     }
 
     .btn-home {
@@ -152,16 +180,15 @@
       font-size: 1rem; cursor: pointer;
     }
 
-    /* Opponent picked indicator */
-    .opponent-badge {
-      position: absolute;
-      top: -8px; right: -8px;
-      background: #f0c040;
-      border-radius: 50%;
-      width: 20px; height: 20px;
-      font-size: 0.6rem;
-      display: flex; align-items: center; justify-content: center;
-      z-index: 15;
+    /* Poison reveal glow */
+    .candy-item.poison-reveal .candy-inner {
+      box-shadow: 0 0 24px rgba(255,107,129,1);
+      animation: poisonPulse 0.6s ease-in-out 3;
+    }
+
+    @keyframes poisonPulse {
+      0%,100% { box-shadow: 0 0 8px rgba(255,107,129,0.4); }
+      50% { box-shadow: 0 0 28px rgba(255,107,129,1); }
     }
   </style>
 </head>
@@ -184,6 +211,8 @@
   <button class="btn-leave" onclick="leaveGame()">Leave</button>
 </div>
 
+<div id="waitingPick">⏳ Waiting for opponent to pick...</div>
+
 <div id="resultOverlay">
   <div class="result-emoji" id="resultEmoji">🍬</div>
   <div class="result-title" id="resultTitle">—</div>
@@ -202,7 +231,7 @@
 
   let gameData = null;
   let myPicked = false;
-  let colorPalette = ['#ff6b81', '#ffffff', '#c0392b'];
+  let myResult = null;
 
   document.getElementById('hudCode').textContent = roomCode;
   document.getElementById('overlayCode').textContent = roomCode;
@@ -217,11 +246,8 @@
       }
 
       gameData = await res.json();
-      colorPalette = gameData.candy.colorPalette || colorPalette;
       renderField(gameData);
-
       if (gameData.status === 'in_progress') hideWaiting();
-
       socket.emit('joinRoom', { roomCode, playerName });
 
     } catch (err) {
@@ -233,19 +259,26 @@
     const field = document.getElementById('field');
     field.innerHTML = '';
 
-    data.field.forEach((pos, index) => {
+    // Better spread: divide field into zones to avoid overlap
+    const positions = data.field;
+
+    positions.forEach((pos, index) => {
       const el = document.createElement('div');
       el.className = 'candy-item';
       el.id = `candy-${index}`;
-      el.style.left = `calc(${pos.x}% - 40px)`;
-      el.style.top = `calc(${pos.y}% - 40px)`;
-      el.style.transform = `rotate(${pos.rotation}deg)`;
+      el.style.left = `calc(${pos.x}% - 41px)`;
+      el.style.top = `calc(${pos.y}% - 41px)`;
+
+      const inner = document.createElement('div');
+      inner.className = 'candy-inner';
+      inner.style.transform = `rotate(${pos.rotation}deg)`;
 
       const img = document.createElement('img');
       img.src = data.candy.imageUrl;
       img.alt = data.candy.name;
 
-      el.appendChild(img);
+      inner.appendChild(img);
+      el.appendChild(inner);
       el.addEventListener('click', () => pickCandy(index, el));
       field.appendChild(el);
     });
@@ -261,49 +294,48 @@
     if (myPicked) return;
     myPicked = true;
 
-    // Dim all others
+    // Just dim all others silently — no highlight on picked candy
     document.querySelectorAll('.candy-item').forEach(c => {
       c.classList.add('picked');
       if (c !== el) c.classList.add('dimmed');
     });
 
-    el.classList.add('highlight');
-    el.style.transform = el.style.transform + ' scale(1.2)';
-
+    // No visual on picked candy — keeps it mysterious
     socket.emit('pickCandy', { roomCode, playerName, index });
-    document.getElementById('hudStatus').textContent = 'Waiting for result...';
+    document.getElementById('hudStatus').textContent = 'Waiting for opponent...';
     document.getElementById('hudStatus').className = 'hud-status waiting';
+    document.getElementById('waitingPick').style.display = 'block';
   }
 
-  // My result
+  // My result — only show when server confirms both picked
   socket.on('pickResult', ({ index, isPoison, result, poisonedIndex }) => {
-    setTimeout(() => showResult(result, isPoison, poisonedIndex), 600);
+    myResult = { index, isPoison, result, poisonedIndex };
+    document.getElementById('waitingPick').style.display = 'none';
+    // Wait for opponent result to arrive too before showing screen
+    // Server only sends this when both have picked, so show immediately
+    setTimeout(() => revealAndShow(), 400);
   });
 
-  // Opponent picked — show badge on their candy
-  socket.on('opponentPickResult', ({ playerName: oppName, index, isPoison, poisonedIndex }) => {
-    const el = document.getElementById(`candy-${index}`);
-    if (el) {
-      const badge = document.createElement('div');
-      badge.className = 'opponent-badge';
-      badge.textContent = '👤';
-      el.appendChild(badge);
-    }
-
-    // If I haven't picked yet, reveal poison after opponent picks
-    if (!myPicked) {
-      document.getElementById('hudStatus').textContent = `${oppName} picked — now your turn!`;
-    }
+  socket.on('opponentPickResult', ({ playerName: oppName, index, poisonedIndex }) => {
+    // Just log — result screen comes via pickResult
+    console.log(`Opponent ${oppName} picked ${index}`);
   });
 
-  function showResult(result, isPoison, poisonedIndex) {
-    // Highlight the actual poison candy
+  function revealAndShow() {
+    if (!myResult) return;
+    const { result, isPoison, poisonedIndex } = myResult;
+
+    // Reveal poison candy with glow
     const poisonEl = document.getElementById(`candy-${poisonedIndex}`);
     if (poisonEl) {
-      poisonEl.style.filter = 'drop-shadow(0 0 20px rgba(255,107,129,1))';
       poisonEl.classList.remove('dimmed');
+      poisonEl.classList.add('poison-reveal');
     }
 
+    setTimeout(() => showResult(result, isPoison), 800);
+  }
+
+  function showResult(result, isPoison) {
     const overlay = document.getElementById('resultOverlay');
     const emoji = document.getElementById('resultEmoji');
     const title = document.getElementById('resultTitle');
@@ -313,9 +345,7 @@
       emoji.textContent = '🎉';
       title.textContent = 'You Won!';
       title.className = 'result-title won';
-      sub.textContent = isPoison
-        ? 'Lucky escape — that was the poisoned one!'
-        : 'Safe choice. Your opponent got poisoned!';
+      sub.textContent = 'You picked a safe candy. Your opponent wasn\'t so lucky!';
     } else {
       emoji.textContent = '☠️';
       title.textContent = 'Poisoned!';
@@ -326,22 +356,15 @@
     overlay.classList.add('show');
   }
 
-  function playAgain() {
-    window.location.href = '/';
-  }
-
-  function leaveGame() {
-    window.location.href = '/';
-  }
+  function playAgain() { window.location.href = '/'; }
+  function leaveGame() { window.location.href = '/'; }
 
   socket.on('opponentJoined', ({ playerName: oppName }) => {
     hideWaiting();
     document.getElementById('hudStatus').textContent = `${oppName} joined — pick a candy!`;
     setTimeout(() => {
-      if (document.getElementById('hudStatus').textContent.includes('joined')) {
-        document.getElementById('hudStatus').textContent = 'Pick a candy!';
-        document.getElementById('hudStatus').className = 'hud-status playing';
-      }
+      document.getElementById('hudStatus').textContent = 'Pick a candy!';
+      document.getElementById('hudStatus').className = 'hud-status playing';
     }, 3000);
   });
 
