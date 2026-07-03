@@ -187,53 +187,72 @@ io.on('connection', (socket) => {
       const session = await GameSession.findOne({ roomCode }).select('+poisonedIndex');
       if (!session) return;
 
-      const player = session.players.find(p => p.name === playerName);
-      if (!player || player.hasPicked) return;
+      // Check if it's this player's turn
+      const playerIndex = session.players.findIndex(p => p.name === playerName);
+      if (playerIndex !== session.currentTurn) {
+        socket.emit('notYourTurn');
+        return;
+      }
 
-      player.hasPicked = true;
-      player.pickedIndex = index;
-      player.result = (index === session.poisonedIndex) ? 'lost' : 'won';
-      await session.save();
+      // Check if candy already taken
+      if (session.takenCandies && session.takenCandies.includes(index)) {
+        socket.emit('alreadyTaken');
+        return;
+      }
 
-      const allPicked = session.players.every(p => p.hasPicked);
+      // Add to taken candies
+      if (!session.takenCandies) session.takenCandies = [];
+      session.takenCandies.push(index);
 
-      if (allPicked) {
+      const isPoison = index === session.poisonedIndex;
+
+      if (isPoison) {
+        // Game over — picker loses
         session.status = 'finished';
+        session.players[playerIndex].result = 'lost';
+        session.players[1 - playerIndex].result = 'won';
         await session.save();
 
-        // Send each player their own result
-        for (const p of session.players) {
-          const isPoison = p.pickedIndex === session.poisonedIndex;
-          io.to(p.socketId).emit('pickResult', {
-            index: p.pickedIndex,
-            isPoison,
-            result: p.result,
-            poisonedIndex: session.poisonedIndex
-          });
-        }
-
-        // Tell each player what opponent picked
-        const [p1, p2] = session.players;
-        io.to(p1.socketId).emit('opponentPickResult', {
-          playerName: p2.name,
-          index: p2.pickedIndex,
-          poisonedIndex: session.poisonedIndex
-        });
-        io.to(p2.socketId).emit('opponentPickResult', {
-          playerName: p1.name,
-          index: p1.pickedIndex,
-          poisonedIndex: session.poisonedIndex
+        // Notify both players
+        io.to(roomCode).emit('candyTaken', {
+          playerName,
+          index,
+          isPoison: true,
+          takenCandies: session.takenCandies
         });
 
-        console.log(`🎮 Both picked — game finished in room ${roomCode}`);
+        // Send results after short delay for animation
+        setTimeout(() => {
+          for (const p of session.players) {
+            io.to(p.socketId).emit('gameOver', {
+              result: p.result,
+              poisonedIndex: session.poisonedIndex,
+              loserName: playerName
+            });
+          }
+        }, 1500);
+
+        console.log(`☠️ ${playerName} picked poison in room ${roomCode}`);
       } else {
-        console.log(`${playerName} picked ${index} — waiting for opponent in ${roomCode}`);
+        // Safe pick — switch turn
+        session.currentTurn = 1 - session.currentTurn;
+        await session.save();
+
+        io.to(roomCode).emit('candyTaken', {
+          playerName,
+          index,
+          isPoison: false,
+          takenCandies: session.takenCandies,
+          nextTurn: session.players[session.currentTurn].name
+        });
+
+        console.log(`✅ ${playerName} safely picked ${index} in ${roomCode} — next: ${session.players[session.currentTurn].name}`);
       }
     } catch (err) {
       console.error('Pick error:', err);
     }
   });
-
+  
   socket.on('disconnect', () => {
     const i = matchmakingQueue.findIndex(p => p.socketId === socket.id);
     if (i !== -1) matchmakingQueue.splice(i, 1);

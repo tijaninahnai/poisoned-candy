@@ -30,9 +30,31 @@
 
     .room-code { font-size: 0.72rem; color: #444; letter-spacing: 2px; }
     .room-code span { color: #ff6b81; font-weight: 700; font-size: 0.85rem; }
-    .hud-status { font-size: 0.78rem; color: #555; }
-    .hud-status.playing { color: #4ecca3; }
-    .hud-status.waiting { color: #f0c040; }
+
+    .turn-indicator {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      transition: all 0.3s;
+    }
+
+    .turn-indicator.my-turn {
+      background: rgba(78,204,163,0.15);
+      color: #4ecca3;
+      border: 1px solid rgba(78,204,163,0.3);
+    }
+
+    .turn-indicator.their-turn {
+      background: rgba(240,192,64,0.1);
+      color: #f0c040;
+      border: 1px solid rgba(240,192,64,0.2);
+    }
+
+    .turn-indicator.waiting {
+      color: #555;
+      border: 1px solid #2a2a3a;
+    }
 
     #field {
       position: fixed;
@@ -42,14 +64,13 @@
 
     .candy-item {
       position: absolute;
-      width: 82px;
-      height: 82px;
+      width: 80px;
+      height: 80px;
       cursor: pointer;
       user-select: none;
-      transition: filter 0.2s;
+      transition: opacity 0.3s;
     }
 
-    /* White bg pill that contains the candy image */
     .candy-inner {
       width: 100%;
       height: 100%;
@@ -60,7 +81,7 @@
       justify-content: center;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
     }
 
     .candy-inner img {
@@ -68,25 +89,26 @@
       height: 86%;
       object-fit: contain;
       pointer-events: none;
-      display: block;
     }
 
-    .candy-item:hover .candy-inner {
-      transform: scale(1.1);
-      box-shadow: 0 0 16px rgba(255,107,129,0.5);
+    .candy-item.my-turn-active:hover .candy-inner {
+      transform: scale(1.12);
+      box-shadow: 0 0 16px rgba(255,107,129,0.6);
     }
 
-    .candy-item.picked { pointer-events: none; }
+    .candy-item.taken {
+      pointer-events: none;
+      opacity: 0;
+    }
 
-    .candy-item.dimmed .candy-inner {
-      opacity: 0.18;
-      box-shadow: none;
+    .candy-item.not-my-turn {
+      cursor: not-allowed;
     }
 
     /* Waiting overlay */
     #waitingOverlay {
       position: fixed; inset: 0;
-      background: rgba(17,17,24,0.93);
+      background: rgba(17,17,24,0.95);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -94,8 +116,6 @@
       gap: 1.2rem;
       z-index: 200;
     }
-
-    #waitingOverlay h2 { color: #ff6b81; font-size: 1.3rem; }
 
     .code-card {
       background: #1a1a24;
@@ -117,23 +137,24 @@
       border-radius: 10px; cursor: pointer; font-size: 0.8rem;
     }
 
-    .btn-leave:hover { border-color: #ff6b81; color: #ff6b81; }
-
-    /* Waiting for opponent pick */
-    #waitingPick {
-      display: none;
+    /* Turn announcement toast */
+    #turnToast {
       position: fixed;
-      bottom: 1.5rem; left: 50%;
+      top: 60px; left: 50%;
       transform: translateX(-50%);
       background: #1a1a24;
       border: 1px solid #2a2a3a;
-      border-radius: 14px;
-      padding: 0.8rem 1.4rem;
-      font-size: 0.82rem;
-      color: #666;
+      border-radius: 12px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.85rem;
+      color: #aaa;
       z-index: 150;
-      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
     }
+
+    #turnToast.show { opacity: 1; }
 
     /* Result overlay */
     #resultOverlay {
@@ -150,17 +171,12 @@
     #resultOverlay.show { display: flex; }
 
     .result-emoji { font-size: 5rem; line-height: 1; }
-
     .result-title {
-      font-size: 2rem;
-      font-weight: 900;
-      letter-spacing: 2px;
-      text-transform: uppercase;
+      font-size: 2rem; font-weight: 900;
+      letter-spacing: 2px; text-transform: uppercase;
     }
-
     .result-title.won { color: #4ecca3; }
     .result-title.lost { color: #ff6b81; }
-
     .result-sub { color: #555; font-size: 0.9rem; text-align: center; max-width: 280px; }
 
     .result-btns { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
@@ -174,35 +190,56 @@
 
     .btn-home {
       background: #1a1a24; color: #aaa;
-      border: 1px solid #2a2a3a;
-      border-radius: 14px;
-      padding: 0.9rem 1.8rem;
-      font-size: 1rem; cursor: pointer;
+      border: 1px solid #2a2a3a; border-radius: 14px;
+      padding: 0.9rem 1.8rem; font-size: 1rem; cursor: pointer;
     }
 
-    /* Poison reveal glow */
+    /* Poison reveal */
     .candy-item.poison-reveal .candy-inner {
-      box-shadow: 0 0 24px rgba(255,107,129,1);
-      animation: poisonPulse 0.6s ease-in-out 3;
+      animation: poisonPulse 0.5s ease-in-out 3;
     }
 
     @keyframes poisonPulse {
-      0%,100% { box-shadow: 0 0 8px rgba(255,107,129,0.4); }
-      50% { box-shadow: 0 0 28px rgba(255,107,129,1); }
+      0%,100% { box-shadow: 0 0 8px rgba(255,107,129,0.3); }
+      50% { box-shadow: 0 0 30px rgba(255,107,129,1); }
     }
+
+    /* Scoreboard */
+    #scoreboard {
+      position: fixed;
+      bottom: 1rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1rem;
+      z-index: 100;
+    }
+
+    .score-card {
+      background: rgba(26,26,36,0.9);
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
+      text-align: center;
+      min-width: 80px;
+    }
+
+    .score-card .s-name { font-size: 0.7rem; color: #555; }
+    .score-card .s-count { font-size: 1.1rem; font-weight: 700; color: #f0f0f0; }
+    .score-card.active-player { border-color: #ff6b81; }
   </style>
 </head>
 <body>
 
 <div id="hud">
   <div class="room-code">ROOM <span id="hudCode">—</span></div>
-  <div class="hud-status waiting" id="hudStatus">Waiting...</div>
+  <div class="turn-indicator waiting" id="turnIndicator">Waiting...</div>
 </div>
 
 <div id="field"></div>
+<div id="turnToast"></div>
 
 <div id="waitingOverlay">
-  <h2>🍬 Share this code</h2>
+  <h2 style="color:#ff6b81; font-size:1.3rem;">🍬 Share this code</h2>
   <div class="code-card">
     <p>ROOM CODE</p>
     <div class="code" id="overlayCode">—</div>
@@ -211,7 +248,16 @@
   <button class="btn-leave" onclick="leaveGame()">Leave</button>
 </div>
 
-<div id="waitingPick">⏳ Waiting for opponent to pick...</div>
+<div id="scoreboard">
+  <div class="score-card" id="score0">
+    <div class="s-name" id="sName0">—</div>
+    <div class="s-count" id="sCount0">0</div>
+  </div>
+  <div class="score-card" id="score1">
+    <div class="s-name" id="sName1">—</div>
+    <div class="s-count" id="sCount1">0</div>
+  </div>
+</div>
 
 <div id="resultOverlay">
   <div class="result-emoji" id="resultEmoji">🍬</div>
@@ -230,8 +276,11 @@
   const playerName = localStorage.getItem('playerName') || 'Player';
 
   let gameData = null;
-  let myPicked = false;
-  let myResult = null;
+  let myPlayerIndex = -1;
+  let currentTurn = 0;
+  let takenCandies = [];
+  let pickCounts = [0, 0];
+  let isMyTurn = false;
 
   document.getElementById('hudCode').textContent = roomCode;
   document.getElementById('overlayCode').textContent = roomCode;
@@ -247,7 +296,20 @@
 
       gameData = await res.json();
       renderField(gameData);
-      if (gameData.status === 'in_progress') hideWaiting();
+
+      // Figure out my player index
+      myPlayerIndex = gameData.players.findIndex(p => p.name === playerName);
+      if (myPlayerIndex === -1) myPlayerIndex = 1; // fallback for joining player
+
+      // Update scoreboard names
+      if (gameData.players[0]) document.getElementById('sName0').textContent = gameData.players[0].name;
+      if (gameData.players[1]) document.getElementById('sName1').textContent = gameData.players[1].name;
+
+      if (gameData.status === 'in_progress') {
+        hideWaiting();
+        updateTurnUI(0);
+      }
+
       socket.emit('joinRoom', { roomCode, playerName });
 
     } catch (err) {
@@ -259,15 +321,12 @@
     const field = document.getElementById('field');
     field.innerHTML = '';
 
-    // Better spread: divide field into zones to avoid overlap
-    const positions = data.field;
-
-    positions.forEach((pos, index) => {
+    data.field.forEach((pos, index) => {
       const el = document.createElement('div');
       el.className = 'candy-item';
       el.id = `candy-${index}`;
-      el.style.left = `calc(${pos.x}% - 41px)`;
-      el.style.top = `calc(${pos.y}% - 41px)`;
+      el.style.left = `calc(${pos.x}% - 40px)`;
+      el.style.top = `calc(${pos.y}% - 40px)`;
 
       const inner = document.createElement('div');
       inner.className = 'candy-inner';
@@ -279,94 +338,136 @@
 
       inner.appendChild(img);
       el.appendChild(inner);
-      el.addEventListener('click', () => pickCandy(index, el));
+      el.addEventListener('click', () => onCandyClick(index, el));
       field.appendChild(el);
     });
   }
 
+  function onCandyClick(index, el) {
+    if (!isMyTurn) {
+      showToast("It's not your turn!");
+      return;
+    }
+    if (takenCandies.includes(index)) return;
+
+    socket.emit('pickCandy', { roomCode, playerName, index });
+  }
+
   function hideWaiting() {
     document.getElementById('waitingOverlay').style.display = 'none';
-    document.getElementById('hudStatus').textContent = 'Pick a candy!';
-    document.getElementById('hudStatus').className = 'hud-status playing';
   }
 
-  function pickCandy(index, el) {
-    if (myPicked) return;
-    myPicked = true;
+  function updateTurnUI(turnIndex) {
+    currentTurn = turnIndex;
+    isMyTurn = (turnIndex === myPlayerIndex);
 
-    // Just dim all others silently — no highlight on picked candy
-    document.querySelectorAll('.candy-item').forEach(c => {
-      c.classList.add('picked');
-      if (c !== el) c.classList.add('dimmed');
+    // Update all candy classes
+    document.querySelectorAll('.candy-item').forEach(el => {
+      el.classList.remove('my-turn-active', 'not-my-turn');
+      if (!takenCandies.includes(parseInt(el.dataset.index))) {
+        el.classList.add(isMyTurn ? 'my-turn-active' : 'not-my-turn');
+      }
     });
 
-    // No visual on picked candy — keeps it mysterious
-    socket.emit('pickCandy', { roomCode, playerName, index });
-    document.getElementById('hudStatus').textContent = 'Waiting for opponent...';
-    document.getElementById('hudStatus').className = 'hud-status waiting';
-    document.getElementById('waitingPick').style.display = 'block';
+    // Update HUD
+    const indicator = document.getElementById('turnIndicator');
+    if (isMyTurn) {
+      indicator.textContent = '🍬 Your turn';
+      indicator.className = 'turn-indicator my-turn';
+    } else {
+      const oppName = gameData?.players[turnIndex]?.name || 'Opponent';
+      indicator.textContent = `⏳ ${oppName}'s turn`;
+      indicator.className = 'turn-indicator their-turn';
+    }
+
+    // Update scoreboard active
+    document.getElementById('score0').classList.toggle('active-player', turnIndex === 0);
+    document.getElementById('score1').classList.toggle('active-player', turnIndex === 1);
   }
 
-  // My result — only show when server confirms both picked
-  socket.on('pickResult', ({ index, isPoison, result, poisonedIndex }) => {
-    myResult = { index, isPoison, result, poisonedIndex };
-    document.getElementById('waitingPick').style.display = 'none';
-    // Wait for opponent result to arrive too before showing screen
-    // Server only sends this when both have picked, so show immediately
-    setTimeout(() => revealAndShow(), 400);
+  function showToast(msg) {
+    const toast = document.getElementById('turnToast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  }
+
+  // Candy taken event — fires for both players
+  socket.on('candyTaken', ({ playerName: picker, index, isPoison, takenCandies: taken, nextTurn }) => {
+    takenCandies = taken;
+
+    // Remove candy from field
+    const el = document.getElementById(`candy-${index}`);
+    if (el) {
+      if (isPoison) {
+        el.classList.add('poison-reveal');
+      } else {
+        setTimeout(() => el.classList.add('taken'), 300);
+      }
+    }
+
+    // Update pick counts
+    const pickerIndex = gameData.players.findIndex(p => p.name === picker);
+    if (pickerIndex !== -1) {
+      pickCounts[pickerIndex]++;
+      document.getElementById(`sCount${pickerIndex}`).textContent = pickCounts[pickerIndex];
+    }
+
+    if (!isPoison && nextTurn) {
+      // Find next turn index
+      const nextTurnIndex = gameData.players.findIndex(p => p.name === nextTurn);
+      setTimeout(() => updateTurnUI(nextTurnIndex), 400);
+    }
   });
 
-  socket.on('opponentPickResult', ({ playerName: oppName, index, poisonedIndex }) => {
-    // Just log — result screen comes via pickResult
-    console.log(`Opponent ${oppName} picked ${index}`);
-  });
-
-  function revealAndShow() {
-    if (!myResult) return;
-    const { result, isPoison, poisonedIndex } = myResult;
-
-    // Reveal poison candy with glow
+  // Game over
+  socket.on('gameOver', ({ result, poisonedIndex, loserName }) => {
+    // Reveal poison candy
     const poisonEl = document.getElementById(`candy-${poisonedIndex}`);
     if (poisonEl) {
-      poisonEl.classList.remove('dimmed');
+      poisonEl.classList.remove('taken');
       poisonEl.classList.add('poison-reveal');
     }
 
-    setTimeout(() => showResult(result, isPoison), 800);
-  }
+    setTimeout(() => {
+      const overlay = document.getElementById('resultOverlay');
+      const emoji = document.getElementById('resultEmoji');
+      const title = document.getElementById('resultTitle');
+      const sub = document.getElementById('resultSub');
 
-  function showResult(result, isPoison) {
-    const overlay = document.getElementById('resultOverlay');
-    const emoji = document.getElementById('resultEmoji');
-    const title = document.getElementById('resultTitle');
-    const sub = document.getElementById('resultSub');
+      if (result === 'won') {
+        emoji.textContent = '🎉';
+        title.textContent = 'You Won!';
+        title.className = 'result-title won';
+        sub.textContent = `${loserName} picked the poisoned candy!`;
+      } else {
+        emoji.textContent = '☠️';
+        title.textContent = 'Poisoned!';
+        title.className = 'result-title lost';
+        sub.textContent = 'You picked the poisoned candy. Better luck next time!';
+      }
 
-    if (result === 'won') {
-      emoji.textContent = '🎉';
-      title.textContent = 'You Won!';
-      title.className = 'result-title won';
-      sub.textContent = 'You picked a safe candy. Your opponent wasn\'t so lucky!';
-    } else {
-      emoji.textContent = '☠️';
-      title.textContent = 'Poisoned!';
-      title.className = 'result-title lost';
-      sub.textContent = 'You picked the poisoned candy. Better luck next time!';
-    }
+      overlay.classList.add('show');
+    }, 1800);
+  });
 
-    overlay.classList.add('show');
-  }
-
-  function playAgain() { window.location.href = '/'; }
-  function leaveGame() { window.location.href = '/'; }
+  socket.on('notYourTurn', () => showToast("It's not your turn!"));
 
   socket.on('opponentJoined', ({ playerName: oppName }) => {
     hideWaiting();
-    document.getElementById('hudStatus').textContent = `${oppName} joined — pick a candy!`;
-    setTimeout(() => {
-      document.getElementById('hudStatus').textContent = 'Pick a candy!';
-      document.getElementById('hudStatus').className = 'hud-status playing';
-    }, 3000);
+
+    // Update player list if not loaded yet
+    if (gameData && gameData.players.length < 2) {
+      gameData.players.push({ name: oppName });
+      document.getElementById('sName1').textContent = oppName;
+    }
+
+    updateTurnUI(0);
+    showToast(`${oppName} joined!`);
   });
+
+  function playAgain() { window.location.href = '/'; }
+  function leaveGame() { window.location.href = '/'; }
 
   loadGame();
 </script>

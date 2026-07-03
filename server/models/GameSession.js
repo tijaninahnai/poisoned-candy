@@ -13,22 +13,24 @@ const gameSessionSchema = new mongoose.Schema({
   },
   fieldSize: {
     type: Number,
-    default: 30
+    default: 25
   },
   field: {
-    type: [
-      {
-        x: Number,
-        y: Number,
-        rotation: Number
-      }
-    ],
+    type: [{ x: Number, y: Number, rotation: Number }],
     default: []
   },
   poisonedIndex: {
     type: Number,
     required: true,
     select: false
+  },
+  takenCandies: {
+    type: [Number],
+    default: []
+  },
+  currentTurn: {
+    type: Number,
+    default: 0
   },
   players: {
     type: [
