@@ -1,4 +1,3 @@
-cat > server/index.js << 'EOF'
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const express = require('express');
@@ -248,4 +247,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🍬 Poisoned Candy server running on port ${PORT}`);
 });
-EOF
