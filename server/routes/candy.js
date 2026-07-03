@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const Candy = require('../models/Candy');
 
 cloudinary.config({
@@ -17,16 +16,24 @@ console.log('☁️ Cloudinary config:', {
   api_secret: process.env.CLOUDINARY_API_SECRET ? '✅ set' : '❌ missing'
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'poisoned-candy',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 400, height: 400, crop: 'pad', background: 'white' }]
-  }
-});
+// Memory storage — file stays in buffer, we upload manually to Cloudinary
+const upload = multer({ storage: multer.memoryStorage() });
 
-const upload = multer({ storage });
+function uploadToCloudinary(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'poisoned-candy',
+        transformation: [{ width: 400, height: 400, crop: 'pad', background: 'white' }]
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+}
 
 router.get('/next-date', async (req, res) => {
   try {
@@ -61,16 +68,19 @@ router.get('/today', async (req, res) => {
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
     console.log('📤 Upload request received');
-    console.log('File:', req.file);
-    console.log('Body:', req.body);
-
     const { name, scheduledDate } = req.body;
+
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     if (!name) return res.status(400).json({ error: 'Candy name is required' });
 
+    // Upload buffer directly to Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer);
+    console.log('☁️ Uploaded to Cloudinary:', result.secure_url);
+
+    // Extract colors
     let palette = ['#ff6b81', '#ffffff', '#c0392b'];
     try {
-      const colorData = await cloudinary.api.resource(req.file.filename, { colors: true });
+      const colorData = await cloudinary.api.resource(result.public_id, { colors: true });
       if (colorData.colors) palette = colorData.colors.slice(0, 5).map(c => c[0]);
     } catch (colorErr) {
       console.error('Color extraction failed (using fallback):', colorErr.message);
@@ -81,8 +91,8 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
     const candy = new Candy({
       name,
-      imageUrl: req.file.path,
-      cloudinaryId: req.file.filename,
+      imageUrl: result.secure_url,
+      cloudinaryId: result.public_id,
       colorPalette: palette,
       queuePosition: nextPosition,
       scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
@@ -104,7 +114,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Upload error details:', err);
+    console.error('❌ Upload error:', err);
     res.status(500).json({ error: err.message || 'Unknown upload error' });
   }
 });
