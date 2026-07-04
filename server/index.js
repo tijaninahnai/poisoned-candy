@@ -61,11 +61,11 @@ async function createGameSession(player1, player2) {
   // Generate non-overlapping field
   const positions = [];
   const minDist = 13;
-  const margin = 10;
+  const margin = 14;
   let attempts = 0;
   while (positions.length < 25 && attempts < 5000) {
     attempts++;
-    const x = margin + Math.random() * (100 - margin * 2);
+    const x = margin + Math.random() * (100 - margin * 2 - 4);
     const y = margin + Math.random() * (100 - margin * 2);
     const overlapping = positions.some(p => {
       const dx = x - p.x, dy = y - p.y;

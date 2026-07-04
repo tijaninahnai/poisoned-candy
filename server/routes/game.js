@@ -11,7 +11,7 @@ function generateRoomCode() {
 function generateField(size = 25) {
   const positions = [];
   const minDist = 13; // minimum % distance between candy centers
-  const margin = 10;
+  const margin = 14;
   const maxAttempts = 200;
 
   let placed = 0;
