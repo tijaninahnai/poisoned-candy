@@ -11,18 +11,24 @@ const gameSessionSchema = new mongoose.Schema({
     ref: 'Candy',
     required: true
   },
-  fieldSize: {
-    type: Number,
-    default: 25
-  },
+  fieldSize: { type: Number, default: 25 },
   field: {
     type: [{ x: Number, y: Number, rotation: Number }],
     default: []
   },
-  poisonedIndex: {
-    type: Number,
-    required: true,
+  poisonedCandies: {
+    type: [{ playerIndex: Number, candyIndex: Number }],
+    default: [],
     select: false
+  },
+  readyPlayers: {
+    type: [Number],
+    default: []
+  },
+  gamePhase: {
+    type: String,
+    enum: ['setup', 'playing', 'finished'],
+    default: 'setup'
   },
   takenCandies: {
     type: [Number],
@@ -37,8 +43,6 @@ const gameSessionSchema = new mongoose.Schema({
       {
         socketId: String,
         name: String,
-        hasPicked: { type: Boolean, default: false },
-        pickedIndex: { type: Number, default: null },
         result: { type: String, enum: ['pending', 'won', 'lost'], default: 'pending' }
       }
     ],

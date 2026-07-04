@@ -10,28 +10,9 @@
     body {
       background-color: #1a1208;
       background-image:
-        repeating-linear-gradient(
-          90deg,
-          transparent,
-          transparent 40px,
-          rgba(255,255,255,0.012) 40px,
-          rgba(255,255,255,0.012) 41px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 60px,
-          rgba(255,255,255,0.008) 60px,
-          rgba(255,255,255,0.008) 61px
-        ),
-        linear-gradient(
-          160deg,
-          #1a1208 0%,
-          #221808 25%,
-          #1e1506 50%,
-          #241a08 75%,
-          #1a1208 100%
-        );
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px),
+        repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.008) 60px, rgba(255,255,255,0.008) 61px),
+        linear-gradient(160deg, #1a1208 0%, #221808 25%, #1e1506 50%, #241a08 75%, #1a1208 100%);
       color: #f0f0f0;
       font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
@@ -55,114 +36,130 @@
     .room-code span { color: #ff6b81; font-weight: 700; font-size: 0.85rem; }
 
     .turn-indicator {
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 20px;
-      transition: all 0.3s;
+      font-size: 0.82rem; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px; transition: all 0.3s;
     }
+    .turn-indicator.my-turn { background: rgba(78,204,163,0.15); color: #4ecca3; border: 1px solid rgba(78,204,163,0.3); }
+    .turn-indicator.their-turn { background: rgba(240,192,64,0.1); color: #f0c040; border: 1px solid rgba(240,192,64,0.2); }
+    .turn-indicator.waiting { color: #5a4a2a; border: 1px solid #2a2010; }
+    .turn-indicator.setup { color: #aa88ff; border: 1px solid rgba(170,136,255,0.3); background: rgba(170,136,255,0.1); }
 
-    .turn-indicator.my-turn {
-      background: rgba(78,204,163,0.15);
-      color: #4ecca3;
-      border: 1px solid rgba(78,204,163,0.3);
-    }
+    #field { position: fixed; inset: 0; top: 44px; }
 
-    .turn-indicator.their-turn {
-      background: rgba(240,192,64,0.1);
-      color: #f0c040;
-      border: 1px solid rgba(240,192,64,0.2);
-    }
-
-    .turn-indicator.waiting {
-      color: #5a4a2a;
-      border: 1px solid #2a2010;
-    }
-
-    #field {
-      position: fixed;
-      inset: 0;
-      top: 44px;
-    }
-
-    /* Canvas for crumble particles */
     #crumbleCanvas {
-      position: fixed;
-      inset: 0;
-      top: 44px;
-      pointer-events: none;
-      z-index: 50;
+      position: fixed; inset: 0; top: 44px;
+      pointer-events: none; z-index: 50;
     }
 
     .candy-item {
       position: absolute;
-      width: 80px;
-      height: 80px;
-      cursor: pointer;
-      user-select: none;
+      width: 80px; height: 80px;
+      cursor: pointer; user-select: none;
     }
 
     .candy-inner {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       overflow: hidden;
       transition: transform 0.15s, filter 0.15s;
-      /* No background — transparent so wood shows through */
     }
 
     .candy-inner img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      pointer-events: none;
-      /* multiply blends white away on light, screen blends on dark */
+      width: 100%; height: 100%;
+      object-fit: contain; pointer-events: none;
       mix-blend-mode: multiply;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
     }
 
-    .candy-item.my-turn-active:hover .candy-inner {
+    .candy-item.selectable:hover .candy-inner {
       transform: scale(1.12);
-      filter: drop-shadow(0 0 12px rgba(255,107,129,0.7));
     }
 
-    .candy-item.my-turn-active:hover .candy-inner img {
-      filter: drop-shadow(0 0 12px rgba(255,107,129,0.7)) brightness(1.1);
+    .candy-item.selectable:hover .candy-inner img {
+      filter: drop-shadow(0 0 12px rgba(170,136,255,0.8)) brightness(1.1);
+    }
+
+    /* Setup phase — selected poison candy marker */
+    .candy-item.my-poison .candy-inner {
+      box-shadow: 0 0 0 3px rgba(255,50,50,0.8);
+    }
+
+    .candy-item.my-poison::after {
+      content: '☠️';
+      position: absolute;
+      top: -8px; right: -8px;
+      font-size: 1rem;
+      z-index: 10;
+      filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
+    }
+
+    /* Game phase */
+    .candy-item.my-turn-active:hover .candy-inner {
+      transform: scale(1.12);
+      filter: drop-shadow(0 0 12px rgba(255,107,129,0.6));
     }
 
     .candy-item.not-my-turn { cursor: not-allowed; }
     .candy-item.taken { pointer-events: none; opacity: 0; }
+    .candy-item.poison-reveal .candy-inner img {
+      animation: poisonPulse 0.5s ease-in-out 3;
+      filter: drop-shadow(0 0 20px rgba(255,50,50,1)) brightness(1.2);
+    }
 
-    /* Crumble spot — stays after candy is taken */
-    .crumble-spot {
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      pointer-events: none;
-      z-index: 5;
+    @keyframes poisonPulse {
+      0%,100% { filter: drop-shadow(0 0 8px rgba(255,50,50,0.4)) brightness(1); }
+      50% { filter: drop-shadow(0 0 30px rgba(255,50,50,1)) brightness(1.3); }
+    }
+
+    /* Setup overlay banner */
+    #setupBanner {
+      position: fixed;
+      top: 44px; left: 0; right: 0;
+      background: rgba(15,10,4,0.92);
+      border-bottom: 1px solid rgba(170,136,255,0.2);
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      z-index: 150;
+      backdrop-filter: blur(8px);
+    }
+
+    .setup-text { font-size: 0.85rem; color: #aa88ff; }
+    .setup-text strong { display: block; font-size: 0.95rem; color: #f0f0f0; }
+
+    .btn-ready {
+      background: #ff6b81; color: white;
+      border: none; border-radius: 12px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; flex-shrink: 0;
+      opacity: 0.4; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .btn-ready.enabled { opacity: 1; pointer-events: auto; }
+    .btn-ready.waiting-opponent {
+      background: #2a2010; color: #5a4a2a;
+      opacity: 1; pointer-events: none;
     }
 
     /* Waiting overlay */
     #waitingOverlay {
       position: fixed; inset: 0;
       background: rgba(15,10,4,0.95);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.2rem;
-      z-index: 200;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1.2rem; z-index: 200;
     }
 
     .code-card {
       background: #1e1608;
       border: 1px solid rgba(255,200,100,0.1);
       border-radius: 16px;
-      padding: 1.5rem 2.5rem;
-      text-align: center;
+      padding: 1.5rem 2.5rem; text-align: center;
     }
 
     .code-card p { color: #5a4a2a; font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
@@ -177,7 +174,6 @@
       border-radius: 10px; cursor: pointer; font-size: 0.8rem;
     }
 
-    /* Toast */
     #turnToast {
       position: fixed;
       top: 60px; left: 50%;
@@ -186,13 +182,10 @@
       border: 1px solid rgba(255,200,100,0.1);
       border-radius: 12px;
       padding: 0.6rem 1.2rem;
-      font-size: 0.85rem;
-      color: #aaa;
-      z-index: 150;
-      opacity: 0;
+      font-size: 0.85rem; color: #aaa;
+      z-index: 160; opacity: 0;
       transition: opacity 0.3s;
-      pointer-events: none;
-      white-space: nowrap;
+      pointer-events: none; white-space: nowrap;
     }
 
     #turnToast.show { opacity: 1; }
@@ -201,68 +194,33 @@
     #resultOverlay {
       position: fixed; inset: 0;
       background: rgba(15,10,4,0.97);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-      z-index: 300;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1.5rem; z-index: 300;
     }
 
     #resultOverlay.show { display: flex; }
-
     .result-emoji { font-size: 5rem; line-height: 1; }
-    .result-title {
-      font-size: 2rem; font-weight: 900;
-      letter-spacing: 2px; text-transform: uppercase;
-    }
+    .result-title { font-size: 2rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
     .result-title.won { color: #4ecca3; }
     .result-title.lost { color: #ff6b81; }
-    .result-sub { color: #5a4a2a; font-size: 0.9rem; text-align: center; max-width: 280px; }
-
+    .result-sub { color: #5a4a2a; font-size: 0.9rem; text-align: center; max-width: 300px; line-height: 1.5; }
     .result-btns { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
-
-    .btn-play-again {
-      background: #ff6b81; color: white;
-      border: none; border-radius: 14px;
-      padding: 0.9rem 1.8rem;
-      font-size: 1rem; font-weight: 700; cursor: pointer;
-    }
-
-    .btn-home {
-      background: #1e1608; color: #aaa;
-      border: 1px solid #2a2010; border-radius: 14px;
-      padding: 0.9rem 1.8rem; font-size: 1rem; cursor: pointer;
-    }
-
-    /* Poison glow */
-    .candy-item.poison-reveal .candy-inner img {
-      animation: poisonPulse 0.5s ease-in-out 3;
-      filter: drop-shadow(0 0 20px rgba(255,50,50,1)) brightness(1.2);
-    }
-
-    @keyframes poisonPulse {
-      0%,100% { filter: drop-shadow(0 0 8px rgba(255,50,50,0.4)) brightness(1); }
-      50% { filter: drop-shadow(0 0 30px rgba(255,50,50,1)) brightness(1.3); }
-    }
+    .btn-play-again { background: #ff6b81; color: white; border: none; border-radius: 14px; padding: 0.9rem 1.8rem; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    .btn-home { background: #1e1608; color: #aaa; border: 1px solid #2a2010; border-radius: 14px; padding: 0.9rem 1.8rem; font-size: 1rem; cursor: pointer; }
 
     /* Scoreboard */
     #scoreboard {
-      position: fixed;
-      bottom: 1rem; left: 50%;
+      position: fixed; bottom: 1rem; left: 50%;
       transform: translateX(-50%);
-      display: flex;
-      gap: 1rem;
-      z-index: 100;
+      display: flex; gap: 1rem; z-index: 100;
     }
 
     .score-card {
       background: rgba(20,14,4,0.9);
       border: 1px solid rgba(255,200,100,0.08);
-      border-radius: 12px;
-      padding: 0.5rem 1rem;
-      text-align: center;
-      min-width: 80px;
+      border-radius: 12px; padding: 0.5rem 1rem;
+      text-align: center; min-width: 80px;
     }
 
     .score-card .s-name { font-size: 0.7rem; color: #5a4a2a; }
@@ -275,6 +233,15 @@
 <div id="hud">
   <div class="room-code">ROOM <span id="hudCode">—</span></div>
   <div class="turn-indicator waiting" id="turnIndicator">Waiting...</div>
+</div>
+
+<!-- Setup banner (shown during setup phase) -->
+<div id="setupBanner" style="display:none">
+  <div class="setup-text">
+    <strong>☠️ Choose your poison</strong>
+    <span id="setupSubtext">Tap a candy to secretly poison it</span>
+  </div>
+  <button class="btn-ready" id="btnReady" onclick="sendReady()">Ready</button>
 </div>
 
 <div id="field"></div>
@@ -327,24 +294,22 @@
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 
-  function spawnCrumble(x, y, palette) {
+  function spawnCrumble(x, y, palette, big = false) {
     const colors = palette && palette.length ? palette : ['#ff6b81', '#ffaa00', '#ff4444'];
-    const count = 32;
+    const count = big ? 50 : 28;
 
     for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
-      const speed = 2 + Math.random() * 5;
-      const size = 3 + Math.random() * 7;
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
+      const speed = (big ? 3 : 2) + Math.random() * (big ? 7 : 5);
+      const size = (big ? 4 : 3) + Math.random() * (big ? 9 : 6);
       const color = colors[Math.floor(Math.random() * colors.length)];
 
       particles.push({
         x: x + (Math.random() - 0.5) * 30,
         y: y + (Math.random() - 0.5) * 30,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1,
-        size,
-        color,
-        alpha: 1,
+        vy: Math.sin(angle) * speed - (big ? 2 : 1),
+        size, color, alpha: 1,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.2,
         gravity: 0.15 + Math.random() * 0.1,
@@ -357,16 +322,12 @@
 
   function animateCrumble() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     particles = particles.filter(p => p.alpha > 0.02);
 
     for (const p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += p.gravity;
-      p.vx *= 0.98;
-      p.alpha -= 0.022;
-      p.rotation += p.rotSpeed;
+      p.x += p.vx; p.y += p.vy;
+      p.vy += p.gravity; p.vx *= 0.98;
+      p.alpha -= 0.02; p.rotation += p.rotSpeed;
 
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.alpha);
@@ -375,13 +336,12 @@
       ctx.rotate(p.rotation);
 
       if (p.shape === 'rect') {
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
       } else {
         ctx.beginPath();
-        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, p.size/2, 0, Math.PI*2);
         ctx.fill();
       }
-
       ctx.restore();
     }
 
@@ -392,7 +352,7 @@
     }
   }
 
-  // ── GAME ──
+  // ── GAME STATE ──
   const socket = io();
   const roomCode = window.location.pathname.split('/').pop().toUpperCase();
   const playerName = localStorage.getItem('playerName') || 'Player';
@@ -404,6 +364,8 @@
   let pickCounts = [0, 0];
   let isMyTurn = false;
   let colorPalette = ['#ff6b81', '#ffaa00', '#ff4444'];
+  let gamePhase = 'waiting'; // waiting → setup → playing → finished
+  let myPoisonIndex = -1;
 
   document.getElementById('hudCode').textContent = roomCode;
   document.getElementById('overlayCode').textContent = roomCode;
@@ -429,7 +391,7 @@
 
       if (gameData.status === 'in_progress') {
         hideWaiting();
-        updateTurnUI(0);
+        enterSetupPhase();
       }
 
       socket.emit('joinRoom', { roomCode, playerName });
@@ -445,7 +407,7 @@
 
     data.field.forEach((pos, index) => {
       const el = document.createElement('div');
-      el.className = 'candy-item';
+      el.className = 'candy-item selectable';
       el.id = `candy-${index}`;
       el.dataset.index = index;
       el.style.left = `calc(${pos.x}% - 40px)`;
@@ -468,21 +430,86 @@
 
   function getCandyCenter(el) {
     const rect = el.getBoundingClientRect();
-    const hudHeight = 44;
     return {
       x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2 - hudHeight
+      y: rect.top + rect.height / 2 - 44
     };
   }
 
+  // ── SETUP PHASE ──
+  function enterSetupPhase() {
+    gamePhase = 'setup';
+    document.getElementById('setupBanner').style.display = 'flex';
+    document.getElementById('turnIndicator').textContent = '☠️ Setup phase';
+    document.getElementById('turnIndicator').className = 'turn-indicator setup';
+
+    // Adjust field top for banner
+    document.getElementById('field').style.top = '44px';
+  }
+
   function onCandyClick(index, el) {
+    if (gamePhase === 'setup') {
+      selectPoison(index, el);
+    } else if (gamePhase === 'playing') {
+      pickCandyGame(index, el);
+    }
+  }
+
+  function selectPoison(index, el) {
+    // Remove previous selection
+    if (myPoisonIndex !== -1) {
+      const prev = document.getElementById(`candy-${myPoisonIndex}`);
+      if (prev) prev.classList.remove('my-poison');
+    }
+
+    myPoisonIndex = index;
+    el.classList.add('my-poison');
+
+    // Enable ready button
+    document.getElementById('btnReady').classList.add('enabled');
+    document.getElementById('setupSubtext').textContent = 'Candy poisoned! Press Ready when done.';
+
+    // Tell server (secretly)
+    socket.emit('setPoisonCandy', { roomCode, playerName, candyIndex: index });
+  }
+
+  function sendReady() {
+    if (myPoisonIndex === -1) return;
+    document.getElementById('btnReady').classList.remove('enabled');
+    document.getElementById('btnReady').classList.add('waiting-opponent');
+    document.getElementById('btnReady').textContent = 'Waiting...';
+    document.getElementById('setupSubtext').textContent = 'Waiting for opponent...';
+    socket.emit('playerReady', { roomCode, playerName });
+  }
+
+  socket.on('readyUpdate', ({ readyCount }) => {
+    if (readyCount === 1 && myPoisonIndex !== -1) {
+      document.getElementById('setupSubtext').textContent = '1/2 ready — waiting for opponent...';
+    }
+  });
+
+  socket.on('gameStart', ({ firstTurn }) => {
+    gamePhase = 'playing';
+    document.getElementById('setupBanner').style.display = 'none';
+
+    // Remove setup classes, add game classes
+    document.querySelectorAll('.candy-item').forEach(el => {
+      el.classList.remove('selectable', 'my-poison');
+    });
+
+    // Update scoreboard names (in case player 2 joined late)
+    if (gameData.players[1]) document.getElementById('sName1').textContent = gameData.players[1].name;
+
+    const firstTurnIndex = gameData.players.findIndex(p => p.name === firstTurn);
+    updateTurnUI(firstTurnIndex !== -1 ? firstTurnIndex : 0);
+    showToast('Game started! ' + (firstTurn === playerName ? 'Your turn first!' : `${firstTurn} goes first!`));
+  });
+
+  // ── GAME PHASE ──
+  function pickCandyGame(index, el) {
     if (!isMyTurn) { showToast("It's not your turn!"); return; }
     if (takenCandies.includes(index)) return;
     socket.emit('pickCandy', { roomCode, playerName, index });
-  }
-
-  function hideWaiting() {
-    document.getElementById('waitingOverlay').style.display = 'none';
   }
 
   function updateTurnUI(turnIndex) {
@@ -509,27 +536,17 @@
     document.getElementById('score1').classList.toggle('active-player', turnIndex === 1);
   }
 
-  function showToast(msg) {
-    const toast = document.getElementById('turnToast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 1500);
-  }
-
-  socket.on('candyTaken', ({ playerName: picker, index, isPoison, takenCandies: taken, nextTurn }) => {
+  socket.on('candyTaken', ({ playerName: picker, index, isPoison, takenCandies: taken, nextTurn, poisonedBy }) => {
     takenCandies = taken;
 
     const el = document.getElementById(`candy-${index}`);
     if (el) {
       const center = getCandyCenter(el);
-
       if (isPoison) {
         el.classList.add('poison-reveal');
-        // Big explosion for poison
-        spawnCrumble(center.x, center.y, ['#ff2222', '#ff6b81', '#aa0000', '#ff4444', '#ffaaaa']);
+        spawnCrumble(center.x, center.y, ['#ff2222', '#ff6b81', '#aa0000', '#ff4444', '#ffaaaa'], true);
       } else {
-        // Normal crumble in candy colors
-        spawnCrumble(center.x, center.y, colorPalette);
+        spawnCrumble(center.x, center.y, colorPalette, false);
         setTimeout(() => el.classList.add('taken'), 350);
       }
     }
@@ -546,43 +563,71 @@
     }
   });
 
-  socket.on('gameOver', ({ result, poisonedIndex, loserName }) => {
-    // Disable all interaction
-    document.querySelectorAll('.candy-item').forEach(el => {
-      el.classList.remove('my-turn-active');
-      el.classList.add('not-my-turn');
-    });
+  socket.on('gameOver', ({ result, poisonedCandies, loserName, poisonedBy }) => {
+    gamePhase = 'finished';
+
+    // Reveal all poison candies
+    if (poisonedCandies) {
+      for (const pc of poisonedCandies) {
+        const el = document.getElementById(`candy-${pc.candyIndex}`);
+        if (el) {
+          el.classList.remove('taken', 'dimmed');
+          el.classList.add('poison-reveal');
+        }
+      }
+    }
 
     setTimeout(() => {
-      const overlay = document.getElementById('resultOverlay');
+      const iSelfPoisoned = poisonedBy === playerName;
 
       if (result === 'won') {
         document.getElementById('resultEmoji').textContent = '🎉';
         document.getElementById('resultTitle').textContent = 'You Won!';
         document.getElementById('resultTitle').className = 'result-title won';
-        document.getElementById('resultSub').textContent = `${loserName} picked the poisoned candy!`;
+        document.getElementById('resultSub').textContent =
+          `${loserName} picked ${iSelfPoisoned ? 'their own' : 'your'} poisoned candy!`;
       } else {
         document.getElementById('resultEmoji').textContent = '☠️';
         document.getElementById('resultTitle').textContent = 'Poisoned!';
         document.getElementById('resultTitle').className = 'result-title lost';
-        document.getElementById('resultSub').textContent = 'You picked the poisoned candy. Better luck next time!';
+        const ownPoison = poisonedBy === playerName;
+        document.getElementById('resultSub').textContent = ownPoison
+          ? '😬 You picked your own poisoned candy!'
+          : `${poisonedBy} poisoned that candy. Better luck next time!`;
       }
 
-      overlay.classList.add('show');
+      document.getElementById('resultOverlay').classList.add('show');
     }, 2000);
   });
 
   socket.on('notYourTurn', () => showToast("It's not your turn!"));
+  socket.on('readyError', ({ error }) => {
+    showToast(error);
+    document.getElementById('btnReady').classList.add('enabled');
+    document.getElementById('btnReady').classList.remove('waiting-opponent');
+    document.getElementById('btnReady').textContent = 'Ready';
+  });
 
   socket.on('opponentJoined', ({ playerName: oppName }) => {
     hideWaiting();
-    if (gameData && gameData.players.length < 2) {
-      gameData.players.push({ name: oppName });
+    if (gameData) {
+      if (gameData.players.length < 2) gameData.players.push({ name: oppName });
       document.getElementById('sName1').textContent = oppName;
     }
-    updateTurnUI(0);
+    enterSetupPhase();
     showToast(`${oppName} joined!`);
   });
+
+  function hideWaiting() {
+    document.getElementById('waitingOverlay').style.display = 'none';
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('turnToast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
 
   function playAgain() { window.location.href = '/'; }
   function leaveGame() { window.location.href = '/'; }
