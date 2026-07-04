@@ -8,37 +8,27 @@ function generateRoomCode() {
   return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-function generateField(size = 25) {
+// Grid layout — 5 columns x 4 rows = 20 candies
+// Positions are percentages, evenly spaced
+function generateField() {
+  const cols = 5;
+  const rows = 4;
   const positions = [];
-  const minDist = 13; // minimum % distance between candy centers
-  const margin = 14;
-  const maxAttempts = 200;
 
-  let placed = 0;
-  let totalAttempts = 0;
+  const colStep = 100 / (cols + 1);
+  const rowStep = 100 / (rows + 1);
 
-  while (placed < size && totalAttempts < maxAttempts * size) {
-    const x = margin + Math.random() * (100 - margin * 2);
-    const y = margin + Math.random() * (100 - margin * 2);
-    totalAttempts++;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      // Small random jitter so it doesn't look too rigid
+      const jitterX = (Math.random() - 0.5) * 4;
+      const jitterY = (Math.random() - 0.5) * 4;
 
-    let overlapping = false;
-    for (const pos of positions) {
-      const dx = x - pos.x;
-      const dy = y - pos.y;
-      if (Math.sqrt(dx * dx + dy * dy) < minDist) {
-        overlapping = true;
-        break;
-      }
-    }
-
-    if (!overlapping) {
       positions.push({
-        x: Math.round(x * 10) / 10,
-        y: Math.round(y * 10) / 10,
-        rotation: Math.floor(Math.random() * 360)
+        x: Math.round((colStep * (c + 1) + jitterX) * 10) / 10,
+        y: Math.round((rowStep * (r + 1) + jitterY) * 10) / 10,
+        rotation: Math.floor(Math.random() * 360) // only the image rotates
       });
-      placed++;
     }
   }
 
@@ -90,19 +80,18 @@ router.post('/create', async (req, res) => {
       exists = await GameSession.findOne({ roomCode });
     }
 
-    const field = generateField(25);
-    const poisonedIndex = Math.floor(Math.random() * field.length);
+    const field = generateField();
 
     const session = new GameSession({
       roomCode,
       candy: candy._id,
       field,
-      poisonedIndex,
+      poisonedCandies: [],
+      readyPlayers: [],
+      gamePhase: 'setup',
       players: [{
         name: playerName,
         socketId: null,
-        hasPicked: false,
-        pickedIndex: null,
         result: 'pending'
       }],
       status: 'waiting'
@@ -135,9 +124,9 @@ router.get('/:roomCode', async (req, res) => {
     res.json({
       roomCode: session.roomCode,
       status: session.status,
+      gamePhase: session.gamePhase,
       field: session.field,
-      fieldSize: session.fieldSize,
-      players: session.players.map(p => ({ name: p.name, hasPicked: p.hasPicked })),
+      players: session.players.map(p => ({ name: p.name, socketId: p.socketId })),
       candy: {
         name: session.candy.name,
         imageUrl: session.candy.imageUrl,
@@ -163,8 +152,6 @@ router.post('/join', async (req, res) => {
     session.players.push({
       name: playerName,
       socketId: null,
-      hasPicked: false,
-      pickedIndex: null,
       result: 'pending'
     });
 

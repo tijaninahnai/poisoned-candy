@@ -53,8 +53,10 @@
 
     .candy-item {
       position: absolute;
-      width: 80px; height: 80px;
-      cursor: pointer; user-select: none;
+      width: 64px;
+      height: 64px;
+      cursor: pointer;
+      user-select: none;
     }
 
     .candy-inner {
@@ -416,7 +418,7 @@
 
       const inner = document.createElement('div');
       inner.className = 'candy-inner';
-      inner.style.transform = `rotate(${pos.rotation}deg)`;
+      img.style.transform = `rotate(${pos.rotation}deg)`;
 
       const img = document.createElement('img');
       img.src = data.candy.imageUrl;
