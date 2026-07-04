@@ -6,7 +6,6 @@
   <title>Poisoned Candy</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       background: #0f0f13;
       color: #f0f0f0;
@@ -16,287 +15,89 @@
       align-items: center;
       justify-content: center;
     }
-
-    .container {
-      width: 100%;
-      max-width: 480px;
-      padding: 2.5rem 1.4rem;
-    }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .logo h1 {
-      font-size: 2.6rem;
-      color: #ff6b81;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      line-height: 1.1;
-    }
-
-    .logo p {
-      color: #444;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      letter-spacing: 1px;
-    }
-
+    .container { width: 100%; max-width: 480px; padding: 2.5rem 1.4rem; }
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo h1 { font-size: 2.6rem; color: #ff6b81; letter-spacing: 3px; text-transform: uppercase; line-height: 1.1; }
+    .logo p { color: #444; font-size: 0.85rem; margin-top: 0.5rem; letter-spacing: 1px; }
     .invite-banner {
       display: none;
-      background: #1a1a24;
-      border: 1px solid #ff6b81;
-      border-radius: 14px;
-      padding: 1rem 1.2rem;
-      margin-bottom: 1.2rem;
-      text-align: center;
+      background: #1a1a24; border: 1px solid #ff6b81;
+      border-radius: 14px; padding: 1rem 1.2rem;
+      margin-bottom: 1.2rem; text-align: center;
     }
-
     .invite-banner p { color: #aaa; font-size: 0.85rem; }
     .invite-banner strong { color: #ff6b81; display: block; font-size: 1.1rem; margin-bottom: 0.3rem; }
-
-    .candy-preview {
-      display: none;
-      text-align: center;
-      margin-bottom: 1.8rem;
-    }
-
-    .candy-preview img {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      background: white;
-      border-radius: 12px;
-      padding: 6px;
-    }
-
+    .candy-preview { display: none; text-align: center; margin-bottom: 1.8rem; }
+    .candy-preview img { width: 80px; height: 80px; object-fit: contain; background: white; border-radius: 12px; padding: 6px; }
     .candy-preview p { color: #444; font-size: 0.75rem; margin-top: 0.4rem; }
     .candy-preview strong { display: block; color: #aaa; font-size: 0.9rem; margin-top: 0.1rem; }
-
     .name-bar {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      background: #1a1a24;
-      border-radius: 16px;
-      padding: 1rem 1.2rem;
-      border: 1px solid #2a2a3a;
+      display: flex; align-items: center; gap: 1rem;
+      background: #1a1a24; border-radius: 16px;
+      padding: 1rem 1.2rem; border: 1px solid #2a2a3a;
       margin-bottom: 1.2rem;
     }
-
-    .avatar {
-      width: 42px; height: 42px;
-      background: #ff6b81;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; font-weight: 700; flex-shrink: 0;
-    }
-
+    .avatar { width: 42px; height: 42px; background: #ff6b81; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; }
     .name-info { flex: 1; }
     .name-info small { color: #555; font-size: 0.72rem; display: block; }
     .name-info strong { font-size: 1rem; }
-
-    .edit-btn {
-      background: none; border: 1px solid #2a2a3a;
-      color: #555; border-radius: 8px;
-      padding: 5px 12px; font-size: 0.78rem; cursor: pointer;
-    }
-
+    .edit-btn { background: none; border: 1px solid #2a2a3a; color: #555; border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; cursor: pointer; }
     .edit-btn:hover { border-color: #ff6b81; color: #ff6b81; }
-
-    .name-input-wrap {
-      background: #1a1a24;
-      border-radius: 16px;
-      padding: 1.2rem 1.4rem;
-      border: 1px solid #2a2a3a;
-      margin-bottom: 1.2rem;
-      display: none;
-    }
-
-    .name-input-wrap label {
-      font-size: 0.72rem; color: #555;
-      text-transform: uppercase; letter-spacing: 1px;
-      display: block; margin-bottom: 0.6rem;
-    }
-
-    .name-input-wrap input {
-      width: 100%;
-      background: #0f0f13;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 0.85rem 1rem;
-      color: #f0f0f0;
-      font-size: 1rem;
-      outline: none;
-      margin-bottom: 0.8rem;
-    }
-
+    .name-input-wrap { background: #1a1a24; border-radius: 16px; padding: 1.2rem 1.4rem; border: 1px solid #2a2a3a; margin-bottom: 1.2rem; display: none; }
+    .name-input-wrap label { font-size: 0.72rem; color: #555; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 0.6rem; }
+    .name-input-wrap input { width: 100%; background: #0f0f13; border: 1px solid #2a2a3a; border-radius: 12px; padding: 0.85rem 1rem; color: #f0f0f0; font-size: 1rem; outline: none; margin-bottom: 0.8rem; }
     .name-input-wrap input:focus { border-color: #ff6b81; }
-
     .actions { display: flex; flex-direction: column; gap: 0.8rem; }
-
-    .btn {
-      width: 100%;
-      padding: 1.15rem;
-      border-radius: 16px;
-      border: none;
-      font-size: 1.05rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-    }
-
+    .btn { width: 100%; padding: 1.15rem; border-radius: 16px; border: none; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
     .btn:hover { opacity: 0.85; }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: #ff6b81; color: white; }
     .btn-secondary { background: #1a1a24; color: #f0f0f0; border: 1px solid #2a2a3a; }
     .btn-secondary:hover { border-color: #ff6b81; }
-    .btn-sm {
-      width: 100%; padding: 0.85rem;
-      border-radius: 12px; border: none;
-      background: #ff6b81; color: white;
-      font-size: 0.95rem; font-weight: 600; cursor: pointer;
-    }
-
+    .btn-sm { width: 100%; padding: 0.85rem; border-radius: 12px; border: none; background: #ff6b81; color: white; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
     .disabled { opacity: 0.3; pointer-events: none; }
     .error { color: #ff6b81; font-size: 0.85rem; text-align: center; min-height: 1.2rem; margin-top: 0.6rem; }
-
-    .overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(15,15,19,0.97);
-      z-index: 500;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.4rem;
-      padding: 2rem 1.4rem;
-    }
-
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(15,15,19,0.97); z-index: 500; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem; padding: 2rem 1.4rem; }
     .overlay.show { display: flex; }
     .overlay h2 { font-size: 1.3rem; color: #ff6b81; }
-
-    .spinner {
-      width: 48px; height: 48px;
-      border: 3px solid #2a2a3a;
-      border-top-color: #ff6b81;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
+    .spinner { width: 48px; height: 48px; border: 3px solid #2a2a3a; border-top-color: #ff6b81; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .mm-time { color: #555; font-size: 0.9rem; }
-
-    .lobby-list {
-      width: 100%; max-width: 420px;
-      max-height: 55vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-    }
-
-    .lobby-player {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      background: #1a1a24;
-      border: 1px solid #2a2a3a;
-      border-radius: 14px;
-      padding: 1rem 1.1rem;
-    }
-
-    .online-dot {
-      width: 9px; height: 9px;
-      border-radius: 50%; flex-shrink: 0;
-    }
-
+    .lobby-list { width: 100%; max-width: 420px; max-height: 55vh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.7rem; }
+    .lobby-player { display: flex; align-items: center; gap: 0.9rem; background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 14px; padding: 1rem 1.1rem; }
+    .online-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
     .online-dot.available { background: #4ecca3; box-shadow: 0 0 6px #4ecca3; }
     .online-dot.ingame { background: #f0c040; }
-
     .p-name { font-size: 0.95rem; }
     .p-status { font-size: 0.72rem; color: #555; margin-top: 2px; }
-
-    .invite-btn {
-      background: #ff6b81; border: none;
-      border-radius: 10px; color: white;
-      padding: 6px 14px; font-size: 0.82rem;
-      font-weight: 600; cursor: pointer; flex-shrink: 0;
-    }
-
+    .invite-btn { background: #ff6b81; border: none; border-radius: 10px; color: white; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; flex-shrink: 0; }
     .invite-btn:disabled { opacity: 0.3; cursor: not-allowed; }
     .lobby-empty { color: #444; font-size: 0.85rem; text-align: center; padding: 2rem; }
-
-    .invite-popup {
-      display: none;
-      position: fixed;
-      bottom: 2rem; left: 50%;
-      transform: translateX(-50%);
-      background: #1a1a24;
-      border: 1px solid #ff6b81;
-      border-radius: 18px;
-      padding: 1.4rem 1.6rem;
-      z-index: 600;
-      width: 90%; max-width: 360px;
-      box-shadow: 0 0 30px rgba(255,107,129,0.2);
-    }
-
+    .invite-popup { display: none; position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1a1a24; border: 1px solid #ff6b81; border-radius: 18px; padding: 1.4rem 1.6rem; z-index: 600; width: 90%; max-width: 360px; box-shadow: 0 0 30px rgba(255,107,129,0.2); }
     .invite-popup.show { display: block; }
     .invite-popup p { font-size: 0.95rem; margin-bottom: 1rem; }
     .invite-popup p span { color: #ff6b81; font-weight: 700; }
     .invite-popup-btns { display: flex; gap: 0.7rem; }
-    .invite-popup-btns button {
-      flex: 1; padding: 0.75rem;
-      border-radius: 12px; border: none;
-      font-weight: 600; cursor: pointer; font-size: 0.9rem;
-    }
-
+    .invite-popup-btns button { flex: 1; padding: 0.75rem; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
     .btn-accept { background: #4ecca3; color: #0f0f13; }
     .btn-decline { background: #2a2a3a; color: #aaa; }
-
-    .session-card {
-      background: #1a1a24;
-      border: 1px solid #2a2a3a;
-      border-radius: 18px;
-      padding: 1.8rem 2rem;
-      text-align: center;
-      width: 100%; max-width: 360px;
-    }
-
+    .session-card { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 18px; padding: 1.8rem 2rem; text-align: center; width: 100%; max-width: 360px; }
     .session-card p { color: #555; font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
     .session-card .code { font-size: 2.2rem; font-weight: 900; color: #ff6b81; letter-spacing: 8px; }
     .session-card .link { font-size: 0.72rem; color: #444; margin-top: 0.7rem; word-break: break-all; }
-
-    .session-actions {
-      display: flex; flex-direction: column;
-      gap: 0.7rem; width: 100%; max-width: 360px;
-    }
-
-    .btn-cancel {
-      background: none; border: 1px solid #2a2a3a;
-      color: #555; padding: 0.7rem 1.5rem;
-      border-radius: 12px; cursor: pointer; font-size: 0.85rem;
-      width: 100%;
-    }
-
+    .session-actions { display: flex; flex-direction: column; gap: 0.7rem; width: 100%; max-width: 360px; }
+    .btn-cancel { background: none; border: 1px solid #2a2a3a; color: #555; padding: 0.7rem 1.5rem; border-radius: 12px; cursor: pointer; font-size: 0.85rem; width: 100%; }
     .btn-cancel:hover { border-color: #ff6b81; color: #ff6b81; }
     .copied-msg { color: #4ecca3; font-size: 0.82rem; min-height: 1rem; text-align: center; }
   </style>
 </head>
 <body>
-
 <div class="container">
   <div class="logo">
     <h1>🍬 Poisoned<br>Candy</h1>
     <p>One candy is poisoned. Choose wisely.</p>
   </div>
 
-  <!-- Invite banner (shown when ?join=CODE in URL) -->
   <div class="invite-banner" id="inviteBanner">
     <strong>🎮 You've been invited!</strong>
     <p>Enter your name to join the game</p>
@@ -326,8 +127,9 @@
 
   <div class="actions" id="actions">
     <button class="btn btn-primary" id="btnPlay" onclick="handleMainAction()">⚡ Play Game</button>
-    <button class="btn btn-secondary" id="btnLobby" onclick="openLobby()">🏠 Lobby</button>
-    <button class="btn btn-secondary" id="btnCreate" onclick="createSession()">🔗 Create Session</button>
+    <button class="btn btn-secondary" onclick="playSolo()">🤖 Solo vs CPU</button>
+    <button class="btn btn-secondary" onclick="openLobby()">🏠 Lobby</button>
+    <button class="btn btn-secondary" onclick="createSession()">🔗 Create Session</button>
   </div>
 
   <div class="error" id="error"></div>
@@ -361,7 +163,7 @@
   <div class="session-actions">
     <button class="btn-sm" onclick="copySessionLink()">📋 Copy invite link</button>
     <div class="copied-msg" id="copiedMsg"></div>
-    <p style="color:#555; font-size:0.82rem;" id="sessionStatus">Waiting for opponent...</p>
+    <p style="color:#555; font-size:0.82rem;">Waiting for opponent...</p>
     <button class="btn-cancel" onclick="closeSession()">Cancel</button>
   </div>
 </div>
@@ -384,18 +186,13 @@
   let pendingInviteFrom = null;
   let inLobby = false;
 
-  // Check for ?join=CODE in URL
   const urlParams = new URLSearchParams(window.location.search);
   const joinCode = urlParams.get('join');
 
-  // If invite link — show banner and hide non-relevant buttons
   if (joinCode) {
     document.getElementById('inviteBanner').style.display = 'block';
     document.getElementById('candyPreview').style.display = 'none';
     document.getElementById('btnPlay').style.display = 'none';
-    document.getElementById('btnLobby').style.display = 'none';
-    document.getElementById('btnCreate').style.display = 'none';
-    // Show single join button after name is set
   }
 
   initName();
@@ -413,8 +210,6 @@
     document.getElementById('nameDisplay').textContent = playerName;
     document.getElementById('avatar').textContent = playerName.charAt(0).toUpperCase();
     document.getElementById('actions').classList.remove('disabled');
-
-    // If invite link and name already set — show join button
     if (joinCode) showJoinButton();
   }
 
@@ -427,9 +222,7 @@
   function showJoinButton() {
     document.getElementById('actions').classList.remove('disabled');
     document.getElementById('actions').innerHTML = `
-      <button class="btn btn-primary" onclick="joinWithCode('${joinCode}')">
-        🎮 Join Game
-      </button>
+      <button class="btn btn-primary" onclick="joinWithCode('${joinCode}')">🎮 Join Game</button>
     `;
   }
 
@@ -441,11 +234,7 @@
     showNameBar();
     hideError();
     socket.emit('goOnline', { playerName });
-
-    // Auto-join if coming from invite link
-    if (joinCode) {
-      setTimeout(() => joinWithCode(joinCode), 300);
-    }
+    if (joinCode) setTimeout(() => joinWithCode(joinCode), 300);
   }
 
   function editName() {
@@ -454,7 +243,7 @@
   }
 
   async function loadTodayCandy() {
-    if (joinCode) return; // Don't show candy preview on invite page
+    if (joinCode) return;
     try {
       const res = await fetch('/api/candy/today');
       if (res.ok) {
@@ -466,7 +255,6 @@
     } catch (e) {}
   }
 
-  // Join with code (from invite link)
   async function joinWithCode(code) {
     if (!playerName) return showError('Enter your name first.');
     showError('Joining...');
@@ -477,23 +265,16 @@
         body: JSON.stringify({ playerName, roomCode: code })
       });
       const data = await res.json();
-      if (data.success) {
-        window.location.href = `/game/${data.roomCode}`;
-      } else {
-        showError(data.error);
-      }
+      if (data.success) window.location.href = `/game/${data.roomCode}`;
+      else showError(data.error);
     } catch (err) {
       showError('Could not join game.');
     }
   }
 
-  // Main action — play or join depending on context
   function handleMainAction() {
-    if (joinCode) {
-      joinWithCode(joinCode);
-    } else {
-      playGame();
-    }
+    if (joinCode) joinWithCode(joinCode);
+    else playGame();
   }
 
   function playGame() {
@@ -515,6 +296,23 @@
     document.getElementById('mmOverlay').classList.remove('show');
   }
 
+  async function playSolo() {
+    if (!playerName) return showError('Save your name first.');
+    hideError();
+    try {
+      const res = await fetch('/api/game/solo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerName })
+      });
+      const data = await res.json();
+      if (data.success) window.location.href = `/game/${data.roomCode}`;
+      else showError(data.error);
+    } catch (err) {
+      showError('Could not start solo game.');
+    }
+  }
+
   function openLobby() {
     if (!playerName) return showError('Save your name first.');
     hideError();
@@ -532,12 +330,10 @@
     if (!inLobby) return;
     const list = document.getElementById('lobbyList');
     const others = players.filter(p => p.socketId !== socket.id);
-
     if (!others.length) {
       list.innerHTML = '<p class="lobby-empty">No one else online right now...</p>';
       return;
     }
-
     list.innerHTML = others.map(p => `
       <div class="lobby-player">
         <div class="online-dot ${p.status === 'ingame' ? 'ingame' : 'available'}"></div>
@@ -547,9 +343,7 @@
         </div>
         <button class="invite-btn"
           onclick="sendInvite('${p.socketId}', '${p.name.replace(/'/g, "\\'")}')"
-          ${p.status === 'ingame' ? 'disabled' : ''}>
-          Invite
-        </button>
+          ${p.status === 'ingame' ? 'disabled' : ''}>Invite</button>
       </div>
     `).join('');
   });
@@ -570,9 +364,7 @@
     document.getElementById('invitePopup').classList.remove('show');
   });
 
-  socket.on('inviteDeclined', ({ byName }) => {
-    showError(`${byName} declined your invite.`);
-  });
+  socket.on('inviteDeclined', ({ byName }) => showError(`${byName} declined your invite.`));
 
   function acceptInvite() {
     if (!pendingInviteFrom) return;
@@ -600,13 +392,11 @@
       const data = await res.json();
       if (!data.success) return showError(data.error);
 
-      // Use ?join=CODE link so friend lands on name page first
       const inviteLink = `${window.location.origin}/?join=${data.roomCode}`;
       document.getElementById('sessionCode').textContent = data.roomCode;
       document.getElementById('sessionLink').textContent = inviteLink;
       document.getElementById('sessionOverlay').classList.add('show');
 
-      // Creator goes to game room directly
       sessionPollInterval = setInterval(async () => {
         const r = await fetch(`/api/game/${data.roomCode}`);
         const g = await r.json();
@@ -615,7 +405,6 @@
           window.location.href = `/game/${data.roomCode}`;
         }
       }, 2000);
-
     } catch (err) {
       showError('Could not create session.');
     }
