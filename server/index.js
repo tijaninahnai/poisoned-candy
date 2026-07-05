@@ -38,7 +38,6 @@ app.get('/game/:roomCode', (req, res) => res.sendFile(path.join(__dirname, '..',
 
 app.set('io', io);
 
-// ── CANDY ROTATION ──
 async function rotateCandyIfNeeded() {
   try {
     const Candy = require('./models/Candy');
@@ -47,7 +46,6 @@ async function rotateCandyIfNeeded() {
 
     const active = await Candy.findOne({ status: 'active' });
 
-    // If active candy was already used today, skip
     if (active && active.usedOnDate) {
       const usedDate = new Date(active.usedOnDate);
       usedDate.setHours(0, 0, 0, 0);
@@ -57,13 +55,11 @@ async function rotateCandyIfNeeded() {
       }
     }
 
-    // Mark current active as used
     if (active) {
       active.status = 'used';
       await active.save();
     }
 
-    // Find next queued candy
     const next = await Candy.findOne({ status: 'queued' }).sort({ queuePosition: 1 });
 
     if (next) {
@@ -72,20 +68,18 @@ async function rotateCandyIfNeeded() {
       await next.save();
       console.log(`🍬 New active candy: ${next.name}`);
     } else {
-      console.log('⚠️ No queued candy found — keeping current or empty');
+      console.log('⚠️ No queued candy found');
     }
   } catch (err) {
     console.error('Candy rotation error:', err);
   }
 }
 
-// Run every day at midnight
 cron.schedule('0 0 * * *', () => {
   console.log('🕛 Running daily candy rotation...');
   rotateCandyIfNeeded();
 });
 
-// ── ONLINE PLAYERS & MATCHMAKING ──
 const onlinePlayers = new Map();
 const matchmakingQueue = [];
 
@@ -194,7 +188,6 @@ async function triggerCpuPick(roomCode) {
   }
 }
 
-// ── SOCKET.IO ──
 io.on('connection', (socket) => {
   console.log(`🔌 Connected: ${socket.id}`);
 
@@ -275,8 +268,7 @@ io.on('connection', (socket) => {
     } catch (err) { console.error('playerReady error:', err); }
   });
 
-  // SOLO: player ready — CPU already ready at session creation
-  socket.on('soloReady', async ({ roomCode, playerName }) => {socket.on('soloReady', async ({ roomCode, playerName }) => {
+  socket.on('soloReady', async ({ roomCode, playerName }) => {
     try {
       const GameSession = require('./models/GameSession');
       const session = await GameSession.findOne({ roomCode }).select('+poisonedCandies');
@@ -291,7 +283,6 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // Update socketId for player before starting
       session.players[playerIndex].socketId = socket.id;
       session.gamePhase = 'playing';
       session.currentTurn = Math.random() > 0.5 ? 0 : 1;
