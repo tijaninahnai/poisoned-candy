@@ -81,11 +81,12 @@
     }
 
     .candy-inner img {
-      width: 100%; height: 100%;
-      object-fit: contain; pointer-events: none;
-      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
-      transition: transform 0.15s, filter 0.15s;
-    }
+  width: 100%; height: 100%;
+  object-fit: contain; pointer-events: none;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.12));
+  transition: transform 0.15s, filter 0.15s;
+}
 
     .candy-item.selectable:hover .candy-inner img {
       filter: drop-shadow(0 0 10px rgba(119,85,204,0.5)) brightness(1.05);
@@ -323,6 +324,10 @@
   let myPoisonIndex = -1;
   let isSolo = false;
 
+// Store game mode for play again
+if (window.location.search.includes('solo') || isSolo) {
+  localStorage.setItem('lastGameMode', 'solo');
+}
   document.getElementById('hudCode').textContent = roomCode;
   document.getElementById('overlayCode').textContent = roomCode;
 
@@ -338,7 +343,8 @@
       gameData = await res.json();
       colorPalette = gameData.candy.colorPalette || colorPalette;
       isSolo = gameData.isSolo || false;
-
+if (isSolo) localStorage.setItem('lastGameMode', 'solo');
+else localStorage.removeItem('lastGameMode');
       renderField(gameData);
 
       myPlayerIndex = gameData.players.findIndex(p => p.name === playerName);
@@ -553,7 +559,25 @@
     setTimeout(() => toast.classList.remove('show'), 2000);
   }
 
-  function playAgain() { window.location.href = '/'; }
+function playAgain() {
+  const mode = localStorage.getItem('lastGameMode');
+  if (mode === 'solo') {
+    // Start new solo game directly
+    fetch('/api/game/solo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerName })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) window.location.href = `/game/${data.roomCode}`;
+      else window.location.href = '/';
+    })
+    .catch(() => window.location.href = '/');
+  } else {
+    window.location.href = '/';
+  }
+}
   function leaveGame() { window.location.href = '/'; }
 
   loadGame();

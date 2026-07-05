@@ -10,26 +10,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-console.log('☁️ Cloudinary config:', {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY ? '✅ set' : '❌ missing',
-  api_secret: process.env.CLOUDINARY_API_SECRET ? '✅ set' : '❌ missing'
-});
-
-// Memory storage — file stays in buffer, we upload manually to Cloudinary
 const upload = multer({ storage: multer.memoryStorage() });
 
 function uploadToCloudinary(buffer) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'poisoned-candy',
-        transformation: [{ width: 400, height: 400, crop: 'pad', background: 'white' }]
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
+      { folder: 'poisoned-candy', transformation: [{ width: 400, height: 400, crop: 'pad', background: 'white' }] },
+      (error, result) => { if (error) reject(error); else resolve(result); }
     );
     stream.end(buffer);
   });
@@ -65,57 +52,57 @@ router.get('/today', async (req, res) => {
   }
 });
 
+// PATCH /api/candy/:id/activate — manually activate a candy
+router.patch('/:id/activate', async (req, res) => {
+  try {
+    // Deactivate current active
+    await Candy.updateMany({ status: 'active' }, { status: 'used', usedOnDate: new Date() });
+
+    // Activate chosen candy
+    const candy = await Candy.findById(req.params.id);
+    if (!candy) return res.status(404).json({ error: 'Candy not found' });
+
+    candy.status = 'active';
+    candy.usedOnDate = new Date();
+    await candy.save();
+
+    res.json({ success: true, candy: { id: candy._id, name: candy.name, status: candy.status } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
-    console.log('📤 Upload request received');
     const { name, scheduledDate } = req.body;
-
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     if (!name) return res.status(400).json({ error: 'Candy name is required' });
 
-    // Upload buffer directly to Cloudinary
     const result = await uploadToCloudinary(req.file.buffer);
-    console.log('☁️ Uploaded to Cloudinary:', result.secure_url);
 
-    // Extract colors
     let palette = ['#ff6b81', '#ffffff', '#c0392b'];
     try {
       const colorData = await cloudinary.api.resource(result.public_id, { colors: true });
       if (colorData.colors) palette = colorData.colors.slice(0, 5).map(c => c[0]);
     } catch (colorErr) {
-      console.error('Color extraction failed (using fallback):', colorErr.message);
+      console.error('Color extraction failed:', colorErr.message);
     }
 
     const lastCandy = await Candy.findOne().sort({ queuePosition: -1 });
     const nextPosition = lastCandy ? lastCandy.queuePosition + 1 : 1;
 
     const candy = new Candy({
-      name,
-      imageUrl: result.secure_url,
-      cloudinaryId: result.public_id,
-      colorPalette: palette,
-      queuePosition: nextPosition,
+      name, imageUrl: result.secure_url, cloudinaryId: result.public_id,
+      colorPalette: palette, queuePosition: nextPosition,
       scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
       status: 'queued'
     });
 
     await candy.save();
-    console.log('✅ Candy saved:', candy.name);
-
-    res.json({
-      success: true,
-      candy: {
-        id: candy._id,
-        name: candy.name,
-        imageUrl: candy.imageUrl,
-        colorPalette: candy.colorPalette,
-        queuePosition: candy.queuePosition
-      }
-    });
-
+    res.json({ success: true, candy: { id: candy._id, name: candy.name, imageUrl: candy.imageUrl, colorPalette: candy.colorPalette, queuePosition: candy.queuePosition } });
   } catch (err) {
-    console.error('❌ Upload error:', err);
-    res.status(500).json({ error: err.message || 'Unknown upload error' });
+    console.error('Upload error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
