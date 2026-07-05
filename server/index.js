@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+const cron = require('node-cron');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +18,10 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connected'))
+  .then(() => {
+    console.log('✅ MongoDB connected');
+    rotateCandyIfNeeded();
+  })
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 const candyRoutes = require('./routes/candy');
@@ -34,14 +38,60 @@ app.get('/game/:roomCode', (req, res) => res.sendFile(path.join(__dirname, '..',
 
 app.set('io', io);
 
+// ── CANDY ROTATION ──
+async function rotateCandyIfNeeded() {
+  try {
+    const Candy = require('./models/Candy');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const active = await Candy.findOne({ status: 'active' });
+
+    // If active candy was already used today, skip
+    if (active && active.usedOnDate) {
+      const usedDate = new Date(active.usedOnDate);
+      usedDate.setHours(0, 0, 0, 0);
+      if (usedDate.getTime() === today.getTime()) {
+        console.log(`🍬 Today's candy: ${active.name}`);
+        return;
+      }
+    }
+
+    // Mark current active as used
+    if (active) {
+      active.status = 'used';
+      await active.save();
+    }
+
+    // Find next queued candy
+    const next = await Candy.findOne({ status: 'queued' }).sort({ queuePosition: 1 });
+
+    if (next) {
+      next.status = 'active';
+      next.usedOnDate = new Date();
+      await next.save();
+      console.log(`🍬 New active candy: ${next.name}`);
+    } else {
+      console.log('⚠️ No queued candy found — keeping current or empty');
+    }
+  } catch (err) {
+    console.error('Candy rotation error:', err);
+  }
+}
+
+// Run every day at midnight
+cron.schedule('0 0 * * *', () => {
+  console.log('🕛 Running daily candy rotation...');
+  rotateCandyIfNeeded();
+});
+
+// ── ONLINE PLAYERS & MATCHMAKING ──
 const onlinePlayers = new Map();
 const matchmakingQueue = [];
 
 function broadcastLobby() {
   const players = Array.from(onlinePlayers.entries()).map(([id, p]) => ({
-    socketId: id,
-    name: p.name,
-    status: p.status
+    socketId: id, name: p.name, status: p.status
   }));
   io.emit('lobbyUpdate', players);
 }
@@ -58,33 +108,24 @@ async function createGameSession(player1, player2) {
     chars[Math.floor(Math.random() * chars.length)]
   ).join('');
 
-  // Generate non-overlapping field
-  const positions = [];
-  const minDist = 13;
-  const margin = 14;
-  let attempts = 0;
-  while (positions.length < 25 && attempts < 5000) {
-    attempts++;
-    const x = margin + Math.random() * (100 - margin * 2 - 4);
-    const y = margin + Math.random() * (100 - margin * 2);
-    const overlapping = positions.some(p => {
-      const dx = x - p.x, dy = y - p.y;
-      return Math.sqrt(dx*dx + dy*dy) < minDist;
-    });
-    if (!overlapping) positions.push({
-      x: Math.round(x * 10) / 10,
-      y: Math.round(y * 10) / 10,
-      rotation: Math.floor(Math.random() * 360)
-    });
+  const cols = 5, rows = 4;
+  const colStep = 100 / (cols + 1);
+  const rowStep = 100 / (rows + 1);
+  const field = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      field.push({
+        x: Math.round((colStep * (c + 1) + (Math.random() - 0.5) * 4) * 10) / 10,
+        y: Math.round((rowStep * (r + 1) + (Math.random() - 0.5) * 4) * 10) / 10,
+        rotation: Math.floor(Math.random() * 360)
+      });
+    }
   }
 
   const session = new GameSession({
-    roomCode,
-    candy: candy._id,
-    field: positions,
-    poisonedCandies: [],
-    readyPlayers: [],
-    gamePhase: 'setup',
+    roomCode, candy: candy._id, field,
+    poisonedCandies: [], readyPlayers: [],
+    gamePhase: 'setup', isSolo: false,
     players: [
       { name: player1.name, socketId: player1.socketId, result: 'pending' },
       { name: player2.name, socketId: player2.socketId, result: 'pending' }
@@ -96,6 +137,64 @@ async function createGameSession(player1, player2) {
   return { roomCode, session };
 }
 
+async function triggerCpuPick(roomCode) {
+  try {
+    const GameSession = require('./models/GameSession');
+    const session = await GameSession.findOne({ roomCode }).select('+poisonedCandies');
+    if (!session || session.gamePhase !== 'playing' || session.currentTurn !== 1) return;
+
+    const fieldSize = session.field.length;
+    const cpuPoison = session.poisonedCandies.find(p => p.playerIndex === 1);
+    const cpuPoisonIndex = cpuPoison ? cpuPoison.candyIndex : -1;
+
+    const available = Array.from({ length: fieldSize }, (_, i) => i)
+      .filter(i => !session.takenCandies.includes(i) && i !== cpuPoisonIndex);
+
+    if (available.length === 0) return;
+
+    const picked = available[Math.floor(Math.random() * available.length)];
+    session.takenCandies.push(picked);
+
+    const poisonEntry = session.poisonedCandies.find(p => p.candyIndex === picked);
+
+    if (poisonEntry) {
+      session.gamePhase = 'finished';
+      session.status = 'finished';
+      session.players[1].result = 'lost';
+      session.players[0].result = 'won';
+      await session.save();
+
+      io.to(roomCode).emit('candyTaken', {
+        playerName: 'CPU', index: picked, isPoison: true,
+        takenCandies: session.takenCandies,
+        poisonedBy: session.players[poisonEntry.playerIndex].name
+      });
+
+      setTimeout(() => {
+        io.to(roomCode).emit('gameOver', {
+          result: 'won',
+          poisonedCandies: session.poisonedCandies,
+          loserName: 'CPU',
+          poisonedBy: session.players[poisonEntry.playerIndex].name
+        });
+      }, 1500);
+
+    } else {
+      session.currentTurn = 0;
+      await session.save();
+
+      io.to(roomCode).emit('candyTaken', {
+        playerName: 'CPU', index: picked, isPoison: false,
+        takenCandies: session.takenCandies,
+        nextTurn: session.players[0].name
+      });
+    }
+  } catch (err) {
+    console.error('CPU pick error:', err);
+  }
+}
+
+// ── SOCKET.IO ──
 io.on('connection', (socket) => {
   console.log(`🔌 Connected: ${socket.id}`);
 
@@ -112,20 +211,14 @@ io.on('connection', (socket) => {
   socket.on('joinRoom', async ({ roomCode, playerName }) => {
     socket.join(roomCode);
     socket.to(roomCode).emit('opponentJoined', { playerName });
-
     try {
       const GameSession = require('./models/GameSession');
       const session = await GameSession.findOne({ roomCode });
       if (session) {
         const player = session.players.find(p => p.name === playerName);
-        if (player) {
-          player.socketId = socket.id;
-          await session.save();
-        }
+        if (player) { player.socketId = socket.id; await session.save(); }
       }
-    } catch (err) {
-      console.error('joinRoom error:', err);
-    }
+    } catch (err) { console.error('joinRoom error:', err); }
 
     if (onlinePlayers.has(socket.id)) {
       onlinePlayers.get(socket.id).status = 'ingame';
@@ -133,7 +226,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // SETUP PHASE: player secretly selects their poison candy
   socket.on('setPoisonCandy', async ({ roomCode, playerName, candyIndex }) => {
     try {
       const GameSession = require('./models/GameSession');
@@ -143,20 +235,15 @@ io.on('connection', (socket) => {
       const playerIndex = session.players.findIndex(p => p.name === playerName);
       if (playerIndex === -1) return;
 
-      // Remove existing choice for this player if any
       session.poisonedCandies = session.poisonedCandies.filter(p => p.playerIndex !== playerIndex);
       session.poisonedCandies.push({ playerIndex, candyIndex });
       await session.save();
 
-      // Confirm back to this player only (not broadcast)
       socket.emit('poisonSet', { candyIndex });
-      console.log(`☠️ ${playerName} secretly poisoned candy ${candyIndex} in ${roomCode}`);
-    } catch (err) {
-      console.error('setPoisonCandy error:', err);
-    }
+      console.log(`☠️ ${playerName} poisoned candy ${candyIndex} in ${roomCode}`);
+    } catch (err) { console.error('setPoisonCandy error:', err); }
   });
 
-  // SETUP PHASE: player clicks Ready
   socket.on('playerReady', async ({ roomCode, playerName }) => {
     try {
       const GameSession = require('./models/GameSession');
@@ -166,43 +253,62 @@ io.on('connection', (socket) => {
       const playerIndex = session.players.findIndex(p => p.name === playerName);
       if (playerIndex === -1) return;
 
-      // Must have chosen a poison candy first
+      const hasChosen = session.poisonedCandies.some(p => p.playerIndex === playerIndex);
+      if (!hasChosen) { socket.emit('readyError', { error: 'Choose a candy to poison first!' }); return; }
+
+      if (!session.readyPlayers.includes(playerIndex)) session.readyPlayers.push(playerIndex);
+
+      io.to(roomCode).emit('readyUpdate', {
+        readyCount: session.readyPlayers.length,
+        readyPlayers: session.readyPlayers
+      });
+
+      if (session.readyPlayers.length === 2) {
+        session.gamePhase = 'playing';
+        session.currentTurn = 0;
+        await session.save();
+        io.to(roomCode).emit('gameStart', { firstTurn: session.players[0].name });
+        console.log(`🎮 Multiplayer game started in ${roomCode}`);
+      } else {
+        await session.save();
+      }
+    } catch (err) { console.error('playerReady error:', err); }
+  });
+
+  // SOLO: player ready — CPU already ready at session creation
+  socket.on('soloReady', async ({ roomCode, playerName }) => {
+    try {
+      const GameSession = require('./models/GameSession');
+      const session = await GameSession.findOne({ roomCode }).select('+poisonedCandies');
+      if (!session || !session.isSolo || session.gamePhase !== 'setup') return;
+
+      const playerIndex = session.players.findIndex(p => p.name === playerName);
+      if (playerIndex === -1) return;
+
       const hasChosen = session.poisonedCandies.some(p => p.playerIndex === playerIndex);
       if (!hasChosen) {
         socket.emit('readyError', { error: 'Choose a candy to poison first!' });
         return;
       }
 
-      // Add to ready list if not already
-      if (!session.readyPlayers.includes(playerIndex)) {
-        session.readyPlayers.push(playerIndex);
-      }
+      // CPU is already in readyPlayers (set at creation), just start
+      session.gamePhase = 'playing';
+      session.currentTurn = Math.random() > 0.5 ? 0 : 1;
+      await session.save();
 
-      // Tell both players how many are ready
-      io.to(roomCode).emit('readyUpdate', {
-        readyCount: session.readyPlayers.length,
-        readyPlayers: session.readyPlayers
+      socket.emit('gameStart', {
+        firstTurn: session.players[session.currentTurn].name,
+        isSolo: true
       });
 
-      // Both ready → start game
-      if (session.readyPlayers.length === 2) {
-        session.gamePhase = 'playing';
-        await session.save();
+      console.log(`🤖 Solo game started in ${roomCode} — first: ${session.players[session.currentTurn].name}`);
 
-        io.to(roomCode).emit('gameStart', {
-          firstTurn: session.players[0].name
-        });
-        console.log(`🎮 Both ready — game started in ${roomCode}`);
-      } else {
-        await session.save();
-        console.log(`⏳ ${playerName} is ready in ${roomCode} — waiting for opponent`);
+      if (session.currentTurn === 1) {
+        setTimeout(() => triggerCpuPick(roomCode), 2000);
       }
-    } catch (err) {
-      console.error('playerReady error:', err);
-    }
+    } catch (err) { console.error('soloReady error:', err); }
   });
 
-  // GAME PHASE: player picks a candy
   socket.on('pickCandy', async ({ roomCode, playerName, index }) => {
     try {
       const GameSession = require('./models/GameSession');
@@ -210,31 +316,21 @@ io.on('connection', (socket) => {
       if (!session || session.gamePhase !== 'playing') return;
 
       const playerIndex = session.players.findIndex(p => p.name === playerName);
-      if (playerIndex !== session.currentTurn) {
-        socket.emit('notYourTurn');
-        return;
-      }
-
+      if (playerIndex !== session.currentTurn) { socket.emit('notYourTurn'); return; }
       if (session.takenCandies.includes(index)) return;
 
       session.takenCandies.push(index);
-
-      // Check if this candy is poisoned (by either player)
       const poisonEntry = session.poisonedCandies.find(p => p.candyIndex === index);
 
       if (poisonEntry) {
-        // Poisoned — picker loses regardless of who poisoned it
         session.gamePhase = 'finished';
         session.status = 'finished';
         session.players[playerIndex].result = 'lost';
         session.players[1 - playerIndex].result = 'won';
         await session.save();
 
-        // Tell both who poisoned it (for reveal)
         io.to(roomCode).emit('candyTaken', {
-          playerName,
-          index,
-          isPoison: true,
+          playerName, index, isPoison: true,
           takenCandies: session.takenCandies,
           poisonedBy: session.players[poisonEntry.playerIndex].name
         });
@@ -250,25 +346,65 @@ io.on('connection', (socket) => {
           }
         }, 1500);
 
-        console.log(`☠️ ${playerName} picked poison (by ${session.players[poisonEntry.playerIndex].name}) in ${roomCode}`);
       } else {
-        // Safe — switch turn
         session.currentTurn = 1 - session.currentTurn;
         await session.save();
 
         io.to(roomCode).emit('candyTaken', {
-          playerName,
-          index,
-          isPoison: false,
+          playerName, index, isPoison: false,
           takenCandies: session.takenCandies,
           nextTurn: session.players[session.currentTurn].name
         });
-
-        console.log(`✅ ${playerName} safely picked ${index} in ${roomCode}`);
       }
-    } catch (err) {
-      console.error('pickCandy error:', err);
-    }
+    } catch (err) { console.error('pickCandy error:', err); }
+  });
+
+  socket.on('soloPickCandy', async ({ roomCode, playerName, index }) => {
+    try {
+      const GameSession = require('./models/GameSession');
+      const session = await GameSession.findOne({ roomCode }).select('+poisonedCandies');
+      if (!session || !session.isSolo || session.gamePhase !== 'playing') return;
+      if (session.currentTurn !== 0) { socket.emit('notYourTurn'); return; }
+      if (session.takenCandies.includes(index)) return;
+
+      session.takenCandies.push(index);
+      const poisonEntry = session.poisonedCandies.find(p => p.candyIndex === index);
+
+      if (poisonEntry) {
+        session.gamePhase = 'finished';
+        session.status = 'finished';
+        session.players[0].result = 'lost';
+        session.players[1].result = 'won';
+        await session.save();
+
+        socket.emit('candyTaken', {
+          playerName, index, isPoison: true,
+          takenCandies: session.takenCandies,
+          poisonedBy: session.players[poisonEntry.playerIndex].name
+        });
+
+        setTimeout(() => {
+          socket.emit('gameOver', {
+            result: 'lost',
+            poisonedCandies: session.poisonedCandies,
+            loserName: playerName,
+            poisonedBy: session.players[poisonEntry.playerIndex].name
+          });
+        }, 1500);
+
+      } else {
+        session.currentTurn = 1;
+        await session.save();
+
+        socket.emit('candyTaken', {
+          playerName, index, isPoison: false,
+          takenCandies: session.takenCandies,
+          nextTurn: 'CPU'
+        });
+
+        setTimeout(() => triggerCpuPick(roomCode), 1800);
+      }
+    } catch (err) { console.error('soloPickCandy error:', err); }
   });
 
   socket.on('joinMatchmaking', async ({ playerName }) => {
@@ -313,9 +449,7 @@ io.on('connection', (socket) => {
       );
       io.to(fromSocketId).emit('matchFound', { roomCode });
       socket.emit('matchFound', { roomCode });
-    } catch (err) {
-      socket.emit('inviteError', { error: err.message });
-    }
+    } catch (err) { socket.emit('inviteError', { error: err.message }); }
   });
 
   socket.on('declineInvite', ({ fromSocketId, playerName }) => {
@@ -324,10 +458,6 @@ io.on('connection', (socket) => {
 
   socket.on('cancelInvite', ({ toSocketId }) => {
     io.to(toSocketId).emit('inviteCancelled');
-  });
-
-  socket.on('matchFound', ({ roomCode }) => {
-    socket.emit('matchFound', { roomCode });
   });
 
   socket.on('disconnect', () => {
