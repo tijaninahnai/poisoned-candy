@@ -276,7 +276,7 @@ io.on('connection', (socket) => {
   });
 
   // SOLO: player ready — CPU already ready at session creation
-  socket.on('soloReady', async ({ roomCode, playerName }) => {
+  socket.on('soloReady', async ({ roomCode, playerName }) => {socket.on('soloReady', async ({ roomCode, playerName }) => {
     try {
       const GameSession = require('./models/GameSession');
       const session = await GameSession.findOne({ roomCode }).select('+poisonedCandies');
@@ -291,7 +291,8 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // CPU is already in readyPlayers (set at creation), just start
+      // Update socketId for player before starting
+      session.players[playerIndex].socketId = socket.id;
       session.gamePhase = 'playing';
       session.currentTurn = Math.random() > 0.5 ? 0 : 1;
       await session.save();
@@ -301,7 +302,7 @@ io.on('connection', (socket) => {
         isSolo: true
       });
 
-      console.log(`🤖 Solo game started in ${roomCode} — first: ${session.players[session.currentTurn].name}`);
+      console.log(`🤖 Solo started in ${roomCode} — first: ${session.players[session.currentTurn].name}`);
 
       if (session.currentTurn === 1) {
         setTimeout(() => triggerCpuPick(roomCode), 2000);
