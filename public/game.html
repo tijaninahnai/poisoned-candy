@@ -8,238 +8,431 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #ffffff;
-      font-family: 'Segoe UI', sans-serif;
+      background: #020617;
+      color: #f8fafc;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
 
-    #hud {
-      position: fixed; top: 0; left: 0; right: 0;
-      padding: 0.7rem 1.2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(26,18,8,0.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255,200,100,0.15);
-      z-index: 100;
-      color: #f0f0f0;
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(15,23,42,0.8);
+      border-bottom: 1px solid #1e293b;
+      backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 20;
     }
 
-    .room-code { font-size: 0.72rem; color: #8a7a5a; letter-spacing: 2px; }
-    .room-code span { color: #ff6b81; font-weight: 700; font-size: 0.85rem; }
-
-    .turn-indicator {
-      font-size: 0.82rem; font-weight: 600;
-      padding: 4px 12px; border-radius: 20px; transition: all 0.3s;
+    .back-btn {
+      padding: 0.5rem;
+      background: #1e293b;
+      border: none; border-radius: 0.75rem;
+      color: #94a3b8; cursor: pointer;
+      font-size: 1.2rem; line-height: 1;
+      transition: color 0.2s;
     }
-    .turn-indicator.my-turn { background: rgba(78,204,163,0.2); color: #2aaa83; border: 1px solid rgba(78,204,163,0.4); }
-    .turn-indicator.their-turn { background: rgba(200,150,0,0.15); color: #f0c040; border: 1px solid rgba(200,150,0,0.3); }
-    .turn-indicator.waiting { color: #8a7a5a; border: 1px solid #5a4a2a; }
-    .turn-indicator.setup { color: #aa88ff; border: 1px solid rgba(170,136,255,0.4); background: rgba(170,136,255,0.1); }
+    .back-btn:hover { color: white; }
 
+    .header-status {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .status-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .status-text {
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      transition: color 0.3s;
+    }
+
+    .status-text.my-turn { color: #fb7185; }
+    .status-text.their-turn { color: #60a5fa; }
+    .status-text.setup { color: #fbbf24; }
+    .status-text.waiting { color: #475569; }
+
+    .header-spacer { width: 2.5rem; }
+
+    /* ── SETUP BANNER ── */
     #setupBanner {
-      position: fixed; top: 44px; left: 0; right: 0;
-      background: rgba(26,18,8,0.95);
-      border-bottom: 1px solid rgba(170,136,255,0.3);
-      padding: 0.8rem 1.2rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-      z-index: 150; backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(15,23,42,0.95);
+      border-bottom: 1px solid rgba(168,85,247,0.3);
+      backdrop-filter: blur(8px);
     }
 
-    .setup-text { font-size: 0.85rem; color: #aa88ff; }
-    .setup-text strong { display: block; font-size: 0.95rem; color: #f0f0f0; }
+    .setup-info { font-size: 0.82rem; }
+    .setup-info strong { display: block; color: #f8fafc; font-size: 0.92rem; }
+    .setup-info span { color: #a78bfa; }
 
     .btn-ready {
-      background: #ff6b81; color: white;
-      border: none; border-radius: 12px;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.9rem; font-weight: 700;
+      background: #f43f5e;
+      color: white; border: none;
+      border-radius: 0.75rem;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.88rem; font-weight: 700;
       cursor: pointer; flex-shrink: 0;
-      opacity: 0.4; pointer-events: none;
-      transition: opacity 0.2s;
+      opacity: 0.35; pointer-events: none;
+      transition: opacity 0.2s, transform 0.1s;
     }
+    .btn-ready:active { transform: scale(0.96); }
     .btn-ready.enabled { opacity: 1; pointer-events: auto; }
-    .btn-ready.waiting-opponent { background: #555; color: #aaa; opacity: 1; pointer-events: none; }
+    .btn-ready.waiting { background: #334155; color: #64748b; opacity: 1; pointer-events: none; }
 
-    #field { position: fixed; inset: 0; top: 44px; }
-
-    #crumbleCanvas {
-      position: fixed; inset: 0; top: 44px;
-      pointer-events: none; z-index: 50;
+    /* ── FIELD ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      overflow: hidden;
     }
 
-    .candy-item {
-      position: absolute;
-      width: 72px; height: 72px;
-      cursor: pointer; user-select: none;
+    #candyGrid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.6rem;
+      width: 100%;
+      max-width: 420px;
     }
 
-    .candy-inner {
+    .candy-cell {
+      aspect-ratio: 1;
+      background: white;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.3rem;
+      cursor: pointer;
+      position: relative;
+      overflow: visible;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .candy-cell img {
       width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      /* NO background — transparent on white page */
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      display: block;
     }
 
-    .candy-inner img {
-  width: 100%; height: 100%;
-  object-fit: contain; pointer-events: none;
-  mix-blend-mode: multiply;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.12));
-  transition: transform 0.15s, filter 0.15s;
-}
-
-    .candy-item.selectable:hover .candy-inner img {
-      filter: drop-shadow(0 0 10px rgba(119,85,204,0.5)) brightness(1.05);
-      transform: scale(1.12);
+    .candy-cell.selectable:hover {
+      transform: translateY(-3px) rotate(2deg);
+      box-shadow: 0 8px 24px rgba(251,113,133,0.35);
+      z-index: 5;
     }
 
-    .candy-item.my-poison::after {
+    .candy-cell.selectable:active { transform: scale(0.94); }
+
+    .candy-cell.my-poison {
+      box-shadow: 0 0 0 3px #ef4444, 0 4px 12px rgba(239,68,68,0.4);
+    }
+
+    .candy-cell.my-poison::after {
       content: '☠️';
       position: absolute;
-      top: -10px; right: -10px;
+      top: -10px; right: -8px;
       font-size: 1rem; z-index: 10;
     }
 
-    .candy-item.my-poison .candy-inner img {
-      filter: drop-shadow(0 0 8px rgba(255,50,50,0.6));
-    }
+    .candy-cell.not-selectable { cursor: default; }
+    .candy-cell.not-my-turn { cursor: not-allowed; }
 
-    .candy-item.my-turn-active:hover .candy-inner img {
-      filter: drop-shadow(0 0 12px rgba(255,107,129,0.6)) brightness(1.1);
-      transform: scale(1.12);
-    }
-
-    .candy-item.not-my-turn { cursor: not-allowed; }
-
-    .candy-item.taken {
-      pointer-events: none;
+    .candy-cell.eaten {
       opacity: 0;
-      transition: opacity 0.3s;
+      transform: scale(0.4);
+      pointer-events: none;
     }
 
-    .candy-item.poison-reveal .candy-inner img {
-      animation: poisonPulse 0.5s ease-in-out 3;
+    .candy-cell.poison-flash {
+      animation: poisonFlash 0.5s ease-in-out 3;
     }
 
-    @keyframes poisonPulse {
-      0%,100% { filter: drop-shadow(0 0 8px rgba(255,50,50,0.4)); }
-      50% { filter: drop-shadow(0 0 30px rgba(255,50,50,1)) brightness(1.3); }
+    @keyframes poisonFlash {
+      0%,100% { box-shadow: 0 0 0 2px rgba(239,68,68,0.3); }
+      50% { box-shadow: 0 0 0 6px rgba(239,68,68,1), 0 0 30px rgba(239,68,68,0.6); }
     }
 
+    .candy-cell.poison-dead {
+      background: #ef4444;
+      animation: none;
+    }
+
+    .candy-cell.poison-dead img { display: none; }
+    .candy-cell.poison-dead::before {
+      content: '☠️';
+      font-size: 1.8rem;
+    }
+
+    /* ── CRUMBLE CANVAS ── */
+    #crumbleCanvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 50;
+    }
+
+    /* ── FOOTER SCOREBOARD ── */
+    footer {
+      background: #0f172a;
+      border-top: 1px solid #1e293b;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .scoreboard {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 360px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 1.25rem;
+      padding: 0.4rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .score-side {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 1rem;
+      border: 1px solid transparent;
+      transition: all 0.3s;
+      flex: 1;
+    }
+
+    .score-side.active-p { background: rgba(251,113,133,0.08); border-color: rgba(251,113,133,0.25); }
+    .score-side.active-cpu { background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.25); }
+
+    .score-icon {
+      padding: 0.45rem;
+      border-radius: 0.6rem;
+      background: #1e293b;
+      color: #475569;
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: all 0.3s;
+    }
+
+    .score-side.active-p .score-icon { background: rgba(251,113,133,0.2); color: #fb7185; }
+    .score-side.active-cpu .score-icon { background: rgba(96,165,250,0.2); color: #60a5fa; }
+
+    .score-info { display: flex; flex-direction: column; }
+    .score-name { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; }
+    .score-num { font-size: 1.5rem; font-weight: 900; color: white; line-height: 1; margin-top: 2px; }
+
+    .score-side.right { flex-direction: row-reverse; }
+    .score-side.right .score-info { align-items: flex-end; }
+
+    .score-vs { color: #334155; font-weight: 900; font-size: 0.9rem; padding: 0 0.5rem; }
+
+    /* ── WAITING OVERLAY ── */
     #waitingOverlay {
       position: fixed; inset: 0;
-      background: rgba(255,255,255,0.97);
+      background: rgba(2,6,23,0.97);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 1.2rem; z-index: 200;
+      gap: 1.5rem; z-index: 200;
+      padding: 2rem;
     }
 
-    .code-card {
-      background: white; border: 1px solid #eee;
-      border-radius: 16px; padding: 1.5rem 2.5rem; text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    .room-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 1.5rem;
+      padding: 2rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
-    .code-card p { color: #bbb; font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
-    .code-card .code { font-size: 2.4rem; font-weight: 900; color: #ff6b81; letter-spacing: 8px; }
-    .code-card .wait-text { font-size: 0.82rem; color: #bbb; margin-top: 0.8rem; }
 
-    .pulse { animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+    .room-card .room-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #475569; margin-bottom: 0.5rem; }
+    .room-card .room-code { font-size: 2.5rem; font-weight: 900; color: #fb7185; letter-spacing: 0.2em; }
+    .room-card .room-sub { font-size: 0.8rem; color: #334155; margin-top: 0.75rem; }
+
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
     .btn-leave {
-      background: none; border: 1px solid #ddd;
-      color: #aaa; padding: 0.5rem 1.2rem;
-      border-radius: 10px; cursor: pointer; font-size: 0.8rem;
+      background: none; border: 1px solid #1e293b;
+      color: #475569; padding: 0.6rem 1.5rem;
+      border-radius: 0.75rem; cursor: pointer; font-size: 0.85rem;
+      transition: all 0.2s;
     }
+    .btn-leave:hover { border-color: #fb7185; color: #fb7185; }
 
-    #turnToast {
-      position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
-      background: rgba(26,18,8,0.88);
-      border-radius: 12px; padding: 0.6rem 1.2rem;
-      font-size: 0.85rem; color: #f0f0f0;
-      z-index: 160; opacity: 0; transition: opacity 0.3s;
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
+      background: rgba(15,23,42,0.95);
+      border: 1px solid #1e293b;
+      border-radius: 0.75rem;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.85rem; color: #cbd5e1;
+      z-index: 160; opacity: 0; transition: opacity 0.25s;
       pointer-events: none; white-space: nowrap;
+      backdrop-filter: blur(8px);
     }
-    #turnToast.show { opacity: 1; }
+    #toast.show { opacity: 1; }
 
-    #resultOverlay {
-      position: fixed; inset: 0; background: rgba(255,255,255,0.97);
-      display: none; flex-direction: column;
+    /* ── GAME OVER MODAL ── */
+    #gameOverModal {
+      display: none;
+      position: fixed; inset: 0; z-index: 50;
       align-items: center; justify-content: center;
-      gap: 1.5rem; z-index: 300;
+      padding: 1rem;
+      background: rgba(2,6,23,0.8);
+      backdrop-filter: blur(6px);
     }
-    #resultOverlay.show { display: flex; }
-    .result-emoji { font-size: 5rem; line-height: 1; }
-    .result-title { font-size: 2rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
-    .result-title.won { color: #2aaa83; }
-    .result-title.lost { color: #ff6b81; }
-    .result-sub { color: #aaa; font-size: 0.9rem; text-align: center; max-width: 300px; line-height: 1.5; }
-    .result-btns { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
-    .btn-play-again { background: #ff6b81; color: white; border: none; border-radius: 14px; padding: 0.9rem 1.8rem; font-size: 1rem; font-weight: 700; cursor: pointer; }
-    .btn-home { background: white; color: #666; border: 1px solid #ddd; border-radius: 14px; padding: 0.9rem 1.8rem; font-size: 1rem; cursor: pointer; }
 
-    #scoreboard {
-      position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 1rem; z-index: 100;
+    #gameOverModal.show { display: flex; }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 2rem;
+      padding: 2rem;
+      max-width: 340px; width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6);
     }
-    .score-card {
-      background: rgba(26,18,8,0.85); color: #f0f0f0;
-      border: 1px solid rgba(255,200,100,0.15);
-      border-radius: 12px; padding: 0.5rem 1rem;
-      text-align: center; min-width: 80px;
+
+    .modal-icon {
+      width: 5rem; height: 5rem;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2.5rem;
     }
-    .score-card .s-name { font-size: 0.7rem; color: #8a7a5a; }
-    .score-card .s-count { font-size: 1.1rem; font-weight: 700; }
-    .score-card.active-player { border-color: rgba(255,107,129,0.5); }
+
+    .modal-icon.won { background: rgba(34,197,94,0.15); }
+    .modal-icon.lost { background: rgba(239,68,68,0.15); }
+
+    .modal-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
+    .modal-title.won { color: #22c55e; }
+    .modal-title.lost { color: #ef4444; }
+    .modal-sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5; }
+
+    .modal-btns { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .btn-again {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      background: #f43f5e; color: white;
+      border: none; border-radius: 1rem;
+      padding: 0.9rem; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-again:hover { background: #fb7185; }
+    .btn-again:active { transform: scale(0.97); }
+
+    .btn-exit {
+      background: none; color: #64748b;
+      border: none; border-radius: 1rem;
+      padding: 0.75rem; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-exit:hover { background: #1e293b; color: white; }
   </style>
 </head>
 <body>
 
-<div id="hud">
-  <div class="room-code">ROOM <span id="hudCode">—</span></div>
-  <div class="turn-indicator waiting" id="turnIndicator">Waiting...</div>
-</div>
+<!-- HEADER -->
+<header>
+  <button class="back-btn" onclick="leaveGame()">←</button>
+  <div class="header-status">
+    <span class="status-label" id="statusLabel">Room</span>
+    <span class="status-text waiting" id="statusText" id="hudCode">—</span>
+  </div>
+  <div class="header-spacer"></div>
+</header>
 
-<div id="setupBanner" style="display:none">
-  <div class="setup-text">
+<!-- SETUP BANNER -->
+<div id="setupBanner">
+  <div class="setup-info">
     <strong>☠️ Choose your poison</strong>
     <span id="setupSubtext">Tap a candy to secretly poison it</span>
   </div>
   <button class="btn-ready" id="btnReady" onclick="sendReady()">Ready</button>
 </div>
 
-<div id="field"></div>
-<canvas id="crumbleCanvas"></canvas>
-<div id="turnToast"></div>
+<!-- FIELD -->
+<main>
+  <div id="candyGrid"></div>
+</main>
 
+<!-- CRUMBLE -->
+<canvas id="crumbleCanvas"></canvas>
+
+<!-- SCOREBOARD -->
+<footer>
+  <div class="scoreboard">
+    <div class="score-side" id="scoreLeft">
+      <div class="score-icon">👤</div>
+      <div class="score-info">
+        <span class="score-name" id="sName0">—</span>
+        <span class="score-num" id="sCount0">0</span>
+      </div>
+    </div>
+    <span class="score-vs">VS</span>
+    <div class="score-side right" id="scoreRight">
+      <div class="score-info">
+        <span class="score-name" id="sName1">—</span>
+        <span class="score-num" id="sCount1">0</span>
+      </div>
+      <div class="score-icon">🤖</div>
+    </div>
+  </div>
+</footer>
+
+<!-- WAITING OVERLAY -->
 <div id="waitingOverlay">
-  <h2 style="color:#ff6b81; font-size:1.3rem;">🍬 Share this code</h2>
-  <div class="code-card">
-    <p>ROOM CODE</p>
-    <div class="code" id="overlayCode">—</div>
-    <div class="wait-text pulse">Waiting for opponent to join...</div>
+  <h2 style="color:#fb7185; font-size:1.3rem; font-weight:900;">🍬 Share this code</h2>
+  <div class="room-card">
+    <div class="room-label">Room Code</div>
+    <div class="room-code" id="overlayCode">—</div>
+    <div class="room-sub pulse">Waiting for opponent to join...</div>
   </div>
   <button class="btn-leave" onclick="leaveGame()">Leave</button>
 </div>
 
-<div id="scoreboard">
-  <div class="score-card" id="score0">
-    <div class="s-name" id="sName0">—</div>
-    <div class="s-count" id="sCount0">0</div>
-  </div>
-  <div class="score-card" id="score1">
-    <div class="s-name" id="sName1">—</div>
-    <div class="s-count" id="sCount1">0</div>
-  </div>
-</div>
+<!-- TOAST -->
+<div id="toast"></div>
 
-<div id="resultOverlay">
-  <div class="result-emoji" id="resultEmoji">🍬</div>
-  <div class="result-title" id="resultTitle">—</div>
-  <div class="result-sub" id="resultSub">—</div>
-  <div class="result-btns">
-    <button class="btn-play-again" onclick="playAgain()">Play Again</button>
-    <button class="btn-home" onclick="leaveGame()">Home</button>
+<!-- GAME OVER MODAL -->
+<div id="gameOverModal">
+  <div class="modal-card">
+    <div class="modal-icon" id="modalIcon">🍬</div>
+    <div class="modal-title" id="modalTitle">—</div>
+    <div class="modal-sub" id="modalSub">—</div>
+    <div class="modal-btns">
+      <button class="btn-again" onclick="playAgain()">🔄 Play Again</button>
+      <button class="btn-exit" onclick="leaveGame()">Exit Match</button>
+    </div>
   </div>
 </div>
 
@@ -253,28 +446,29 @@
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight - 44;
+    canvas.height = window.innerHeight;
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 
   function spawnCrumble(x, y, palette, big = false) {
-    const colors = palette && palette.length ? palette : ['#ff6b81', '#ffaa00', '#ff4444'];
-    const count = big ? 50 : 28;
+    const colors = palette && palette.length ? palette : ['#fb7185', '#fbbf24', '#f87171'];
+    const count = big ? 50 : 24;
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
-      const speed = (big ? 3 : 2) + Math.random() * (big ? 7 : 5);
-      const size = (big ? 4 : 3) + Math.random() * (big ? 9 : 6);
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      const speed = (big ? 3 : 1.5) + Math.random() * (big ? 6 : 4);
+      const size = (big ? 4 : 2.5) + Math.random() * (big ? 8 : 5);
       particles.push({
-        x: x + (Math.random() - 0.5) * 30,
-        y: y + (Math.random() - 0.5) * 30,
+        x: x + (Math.random() - 0.5) * 20,
+        y: y + (Math.random() - 0.5) * 20,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - (big ? 2 : 1),
-        size, color, alpha: 1,
+        size,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 1,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.2,
-        gravity: 0.15 + Math.random() * 0.1,
+        gravity: 0.12 + Math.random() * 0.1,
         shape: Math.random() > 0.5 ? 'rect' : 'circle'
       });
     }
@@ -287,26 +481,18 @@
     for (const p of particles) {
       p.x += p.vx; p.y += p.vy;
       p.vy += p.gravity; p.vx *= 0.98;
-      p.alpha -= 0.02; p.rotation += p.rotSpeed;
+      p.alpha -= 0.018; p.rotation += p.rotSpeed;
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.alpha);
       ctx.fillStyle = p.color;
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation);
-      if (p.shape === 'rect') {
-        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
-      } else {
-        ctx.beginPath();
-        ctx.arc(0, 0, p.size/2, 0, Math.PI*2);
-        ctx.fill();
-      }
+      if (p.shape === 'rect') ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.size/2, 0, Math.PI*2); ctx.fill(); }
       ctx.restore();
     }
-    if (particles.length > 0) {
-      animFrameId = requestAnimationFrame(animateCrumble);
-    } else {
-      animFrameId = null;
-    }
+    if (particles.length > 0) animFrameId = requestAnimationFrame(animateCrumble);
+    else animFrameId = null;
   }
 
   // ── GAME STATE ──
@@ -319,89 +505,80 @@
   let takenCandies = [];
   let pickCounts = [0, 0];
   let isMyTurn = false;
-  let colorPalette = ['#ff6b81', '#ffaa00', '#ff4444'];
+  let colorPalette = ['#fb7185', '#fbbf24', '#f87171'];
   let gamePhase = 'waiting';
   let myPoisonIndex = -1;
   let isSolo = false;
 
-// Store game mode for play again
-if (window.location.search.includes('solo') || isSolo) {
-  localStorage.setItem('lastGameMode', 'solo');
-}
-  document.getElementById('hudCode').textContent = roomCode;
+  // Set room code display
   document.getElementById('overlayCode').textContent = roomCode;
+  document.getElementById('statusText').textContent = roomCode;
 
   async function loadGame() {
     try {
       const res = await fetch(`/api/game/${roomCode}`);
       if (!res.ok) {
         document.getElementById('waitingOverlay').innerHTML =
-          '<h2 style="color:#ff6b81;margin-bottom:1rem">Room not found</h2><button class="btn-leave" onclick="location.href=\'/\'">Go home</button>';
+          '<h2 style="color:#fb7185">Room not found</h2><button class="btn-leave" onclick="location.href=\'/\'">Go home</button>';
         return;
       }
 
       gameData = await res.json();
       colorPalette = gameData.candy.colorPalette || colorPalette;
       isSolo = gameData.isSolo || false;
-if (isSolo) localStorage.setItem('lastGameMode', 'solo');
-else localStorage.removeItem('lastGameMode');
-      renderField(gameData);
+
+      renderGrid(gameData);
 
       myPlayerIndex = gameData.players.findIndex(p => p.name === playerName);
       if (myPlayerIndex === -1) myPlayerIndex = 1;
 
-      if (gameData.players[0]) document.getElementById('sName0').textContent = gameData.players[0].name;
-      if (gameData.players[1]) document.getElementById('sName1').textContent = gameData.players[1].name;
-      else if (isSolo) document.getElementById('sName1').textContent = 'CPU';
+      document.getElementById('sName0').textContent = gameData.players[0]?.name || '—';
+      document.getElementById('sName1').textContent = gameData.players[1]?.name || (isSolo ? 'CPU' : '—');
 
       if (gameData.status === 'in_progress') {
         hideWaiting();
         enterSetupPhase();
       }
 
+      if (isSolo) localStorage.setItem('lastGameMode', 'solo');
+      else localStorage.removeItem('lastGameMode');
+
       socket.emit('joinRoom', { roomCode, playerName });
 
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   }
 
-  function renderField(data) {
-    const field = document.getElementById('field');
-    field.innerHTML = '';
+  function renderGrid(data) {
+    const grid = document.getElementById('candyGrid');
+    grid.innerHTML = '';
     data.field.forEach((pos, index) => {
-      const el = document.createElement('div');
-      el.className = 'candy-item selectable';
-      el.id = `candy-${index}`;
-      el.dataset.index = index;
-      el.style.left = `calc(${pos.x}% - 36px)`;
-      el.style.top = `calc(${pos.y}% - 36px)`;
-
-      const inner = document.createElement('div');
-      inner.className = 'candy-inner';
+      const cell = document.createElement('div');
+      cell.className = 'candy-cell selectable';
+      cell.id = `candy-${index}`;
+      cell.dataset.index = index;
 
       const img = document.createElement('img');
       img.src = data.candy.imageUrl;
       img.alt = data.candy.name;
       img.style.transform = `rotate(${pos.rotation}deg)`;
 
-      inner.appendChild(img);
-      el.appendChild(inner);
-      el.addEventListener('click', () => onCandyClick(index, el));
-      field.appendChild(el);
+      cell.appendChild(img);
+      cell.addEventListener('click', () => onCandyClick(index, cell));
+      grid.appendChild(cell);
     });
   }
 
   function getCandyCenter(el) {
     const rect = el.getBoundingClientRect();
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 - 44 };
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
   }
 
   function enterSetupPhase() {
     gamePhase = 'setup';
     document.getElementById('setupBanner').style.display = 'flex';
-    document.getElementById('turnIndicator').textContent = '☠️ Setup phase';
-    document.getElementById('turnIndicator').className = 'turn-indicator setup';
+    document.getElementById('statusLabel').textContent = 'Phase';
+    document.getElementById('statusText').textContent = 'Setup';
+    document.getElementById('statusText').className = 'status-text setup';
   }
 
   function onCandyClick(index, el) {
@@ -417,36 +594,19 @@ else localStorage.removeItem('lastGameMode');
     myPoisonIndex = index;
     el.classList.add('my-poison');
     document.getElementById('btnReady').classList.add('enabled');
-    document.getElementById('setupSubtext').textContent = 'Candy poisoned! Press Ready when done.';
+    document.getElementById('setupSubtext').textContent = 'Candy poisoned! Press Ready.';
     socket.emit('setPoisonCandy', { roomCode, playerName, candyIndex: index });
   }
 
   function sendReady() {
     if (myPoisonIndex === -1) return;
-    document.getElementById('btnReady').classList.remove('enabled');
-    document.getElementById('btnReady').classList.add('waiting-opponent');
-    document.getElementById('btnReady').textContent = isSolo ? 'Starting...' : 'Waiting...';
+    const btn = document.getElementById('btnReady');
+    btn.classList.remove('enabled');
+    btn.classList.add('waiting');
+    btn.textContent = isSolo ? 'Starting...' : 'Waiting...';
     document.getElementById('setupSubtext').textContent = isSolo ? 'CPU is ready...' : 'Waiting for opponent...';
     socket.emit(isSolo ? 'soloReady' : 'playerReady', { roomCode, playerName });
   }
-
-  socket.on('readyUpdate', ({ readyCount }) => {
-    if (readyCount === 1) {
-      document.getElementById('setupSubtext').textContent = '1/2 ready — waiting for opponent...';
-    }
-  });
-
-  socket.on('gameStart', ({ firstTurn }) => {
-    gamePhase = 'playing';
-    document.getElementById('setupBanner').style.display = 'none';
-    document.querySelectorAll('.candy-item').forEach(el => {
-      el.classList.remove('selectable', 'my-poison');
-    });
-    if (gameData.players[1]) document.getElementById('sName1').textContent = gameData.players[1].name;
-    const firstTurnIndex = gameData.players.findIndex(p => p.name === firstTurn);
-    updateTurnUI(firstTurnIndex !== -1 ? firstTurnIndex : 0);
-    showToast(firstTurn === playerName ? '🍬 You go first!' : `⏳ ${firstTurn} goes first!`);
-  });
 
   function pickCandyGame(index, el) {
     if (!isMyTurn) { showToast("It's not your turn!"); return; }
@@ -456,23 +616,57 @@ else localStorage.removeItem('lastGameMode');
 
   function updateTurnUI(turnIndex) {
     isMyTurn = (turnIndex === myPlayerIndex);
-    document.querySelectorAll('.candy-item').forEach(el => {
+
+    document.querySelectorAll('.candy-cell').forEach(el => {
       if (takenCandies.includes(parseInt(el.dataset.index))) return;
-      el.classList.remove('my-turn-active', 'not-my-turn');
-      el.classList.add(isMyTurn ? 'my-turn-active' : 'not-my-turn');
+      el.classList.remove('selectable', 'not-my-turn', 'not-selectable');
+      el.classList.add(isMyTurn ? 'selectable' : 'not-my-turn');
     });
-    const indicator = document.getElementById('turnIndicator');
+
+    const statusText = document.getElementById('statusText');
+    const statusLabel = document.getElementById('statusLabel');
+    statusLabel.textContent = 'Status';
+
     if (isMyTurn) {
-      indicator.textContent = '🍬 Your turn';
-      indicator.className = 'turn-indicator my-turn';
+      statusText.textContent = 'YOUR TURN';
+      statusText.className = 'status-text my-turn';
     } else {
       const oppName = gameData?.players[turnIndex]?.name || 'Opponent';
-      indicator.textContent = `⏳ ${oppName}'s turn`;
-      indicator.className = 'turn-indicator their-turn';
+      statusText.textContent = isSolo && turnIndex === 1 ? 'CPU THINKING...' : oppName.toUpperCase() + '...';
+      statusText.className = 'status-text their-turn';
     }
-    document.getElementById('score0').classList.toggle('active-player', turnIndex === 0);
-    document.getElementById('score1').classList.toggle('active-player', turnIndex === 1);
+
+    document.getElementById('scoreLeft').className = `score-side${turnIndex === 0 ? ' active-p' : ''}`;
+    document.getElementById('scoreRight').className = `score-side right${turnIndex === 1 ? ' active-cpu' : ''}`;
   }
+
+  function hideWaiting() {
+    document.getElementById('waitingOverlay').style.display = 'none';
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // ── SOCKET EVENTS ──
+  socket.on('readyUpdate', ({ readyCount }) => {
+    if (readyCount === 1) document.getElementById('setupSubtext').textContent = '1/2 ready — waiting...';
+  });
+
+  socket.on('gameStart', ({ firstTurn }) => {
+    gamePhase = 'playing';
+    document.getElementById('setupBanner').style.display = 'none';
+    document.querySelectorAll('.candy-cell').forEach(el => el.classList.remove('my-poison'));
+
+    if (gameData.players[1]) document.getElementById('sName1').textContent = gameData.players[1].name;
+
+    const firstIdx = gameData.players.findIndex(p => p.name === firstTurn);
+    updateTurnUI(firstIdx !== -1 ? firstIdx : 0);
+    showToast(firstTurn === playerName ? '🍬 You go first!' : `⏳ ${firstTurn} goes first!`);
+  });
 
   socket.on('candyTaken', ({ playerName: picker, index, isPoison, takenCandies: taken, nextTurn }) => {
     takenCandies = taken;
@@ -480,64 +674,80 @@ else localStorage.removeItem('lastGameMode');
     if (el) {
       const center = getCandyCenter(el);
       if (isPoison) {
-        el.classList.add('poison-reveal');
-        spawnCrumble(center.x, center.y, ['#ff2222', '#ff6b81', '#aa0000', '#ff4444', '#ffaaaa'], true);
+        el.classList.add('poison-flash');
+        spawnCrumble(center.x, center.y, ['#ef4444', '#fb7185', '#dc2626', '#fca5a5'], true);
+        setTimeout(() => { el.classList.remove('poison-flash'); el.classList.add('poison-dead'); }, 1200);
       } else {
         spawnCrumble(center.x, center.y, colorPalette, false);
-        setTimeout(() => el.classList.add('taken'), 350);
+        setTimeout(() => el.classList.add('eaten'), 300);
       }
     }
-    const pickerIndex = gameData.players.findIndex(p => p.name === picker);
-    if (pickerIndex !== -1) {
-      pickCounts[pickerIndex]++;
-      document.getElementById(`sCount${pickerIndex}`).textContent = pickCounts[pickerIndex];
+
+    const pickerIdx = gameData.players.findIndex(p => p.name === picker);
+    if (pickerIdx !== -1) {
+      pickCounts[pickerIdx]++;
+      document.getElementById(`sCount${pickerIdx}`).textContent = pickCounts[pickerIdx];
     }
+
     if (!isPoison && nextTurn) {
-      const nextTurnIndex = gameData.players.findIndex(p => p.name === nextTurn);
+      const nextIdx = gameData.players.findIndex(p => p.name === nextTurn);
       if (isSolo && nextTurn === 'CPU') {
         updateTurnUI(1);
         showToast('🤖 CPU is thinking...');
       } else {
-        setTimeout(() => updateTurnUI(nextTurnIndex !== -1 ? nextTurnIndex : 0), 400);
+        setTimeout(() => updateTurnUI(nextIdx !== -1 ? nextIdx : 0), 400);
       }
     }
   });
 
   socket.on('gameOver', ({ result, poisonedCandies, loserName, poisonedBy }) => {
     gamePhase = 'finished';
+
     if (poisonedCandies) {
-      for (const pc of poisonedCandies) {
+      poisonedCandies.forEach(pc => {
         const el = document.getElementById(`candy-${pc.candyIndex}`);
-        if (el) { el.classList.remove('taken'); el.classList.add('poison-reveal'); }
-      }
+        if (el && !el.classList.contains('eaten')) {
+          el.classList.remove('eaten');
+          el.classList.add('poison-flash');
+        }
+      });
     }
+
     setTimeout(() => {
+      const modal = document.getElementById('gameOverModal');
+      const icon = document.getElementById('modalIcon');
+      const title = document.getElementById('modalTitle');
+      const sub = document.getElementById('modalSub');
       const iSelfPoisoned = poisonedBy === playerName;
+
       if (result === 'won') {
-        document.getElementById('resultEmoji').textContent = '🎉';
-        document.getElementById('resultTitle').textContent = 'You Won!';
-        document.getElementById('resultTitle').className = 'result-title won';
-        document.getElementById('resultSub').textContent =
-          `${loserName} picked ${iSelfPoisoned ? 'their own' : 'your'} poisoned candy!`;
+        icon.textContent = '🎉';
+        icon.className = 'modal-icon won';
+        title.textContent = 'You Survived!';
+        title.className = 'modal-title won';
+        sub.textContent = `${loserName} ate ${iSelfPoisoned ? 'their own' : 'your'} poisoned candy!`;
       } else {
-        document.getElementById('resultEmoji').textContent = '☠️';
-        document.getElementById('resultTitle').textContent = 'Poisoned!';
-        document.getElementById('resultTitle').className = 'result-title lost';
-        document.getElementById('resultSub').textContent = iSelfPoisoned
-          ? '😬 You picked your own poisoned candy!'
-          : `${poisonedBy} poisoned that candy. Better luck next time!`;
+        icon.textContent = '☠️';
+        icon.className = 'modal-icon lost';
+        title.textContent = 'You Were Poisoned!';
+        title.className = 'modal-title lost';
+        sub.textContent = iSelfPoisoned
+          ? '😬 You ate your own poisoned candy!'
+          : `${poisonedBy} set that trap. Better luck next time!`;
       }
-      document.getElementById('resultOverlay').classList.add('show');
-    }, 2000);
+
+      modal.classList.add('show');
+    }, 2200);
   });
 
   socket.on('notYourTurn', () => showToast("It's not your turn!"));
 
   socket.on('readyError', ({ error }) => {
     showToast(error);
-    document.getElementById('btnReady').classList.add('enabled');
-    document.getElementById('btnReady').classList.remove('waiting-opponent');
-    document.getElementById('btnReady').textContent = 'Ready';
+    const btn = document.getElementById('btnReady');
+    btn.classList.add('enabled');
+    btn.classList.remove('waiting');
+    btn.textContent = 'Ready';
   });
 
   socket.on('opponentJoined', ({ playerName: oppName }) => {
@@ -550,34 +760,26 @@ else localStorage.removeItem('lastGameMode');
     showToast(`${oppName} joined!`);
   });
 
-  function hideWaiting() { document.getElementById('waitingOverlay').style.display = 'none'; }
-
-  function showToast(msg) {
-    const toast = document.getElementById('turnToast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
+  function playAgain() {
+    document.getElementById('gameOverModal').classList.remove('show');
+    const mode = localStorage.getItem('lastGameMode');
+    if (mode === 'solo') {
+      fetch('/api/game/solo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerName })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) window.location.href = `/game/${data.roomCode}`;
+        else window.location.href = '/';
+      })
+      .catch(() => window.location.href = '/');
+    } else {
+      window.location.href = '/';
+    }
   }
 
-function playAgain() {
-  const mode = localStorage.getItem('lastGameMode');
-  if (mode === 'solo') {
-    // Start new solo game directly
-    fetch('/api/game/solo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerName })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) window.location.href = `/game/${data.roomCode}`;
-      else window.location.href = '/';
-    })
-    .catch(() => window.location.href = '/');
-  } else {
-    window.location.href = '/';
-  }
-}
   function leaveGame() { window.location.href = '/'; }
 
   loadGame();
