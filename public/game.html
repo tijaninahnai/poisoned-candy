@@ -99,7 +99,7 @@
     .btn-ready.enabled { opacity: 1; pointer-events: auto; }
     .btn-ready.waiting { background: #334155; color: #64748b; opacity: 1; pointer-events: none; }
 
-    /* ── FIELD ── */
+    /* ── FIELD & PLAY MAT ── */
     main {
       flex: 1;
       display: flex;
@@ -109,76 +109,75 @@
       overflow-y: auto;
     }
 
-    /* Fixed responsive grid */
-    #candyGrid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.8rem;
+    /* The new white play-mat fixes all overlapping white backgrounds! */
+    .play-mat {
+      background: #ffffff;
+      border-radius: 2rem;
+      padding: 2rem 1rem;
       width: 100%;
       max-width: 500px;
-    }
-    
-    @media (min-width: 400px) {
-      #candyGrid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 4px rgba(241, 245, 249, 1);
+      position: relative;
     }
 
-    @media (min-width: 550px) {
-      #candyGrid { grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+    #candyGrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 columns looks best */
+      gap: 0.5rem;
+      place-items: center;
     }
 
     .candy-cell {
       aspect-ratio: 1;
-      background: #ffffff; /* Must remain solid white for mix-blend-mode to work */
-      border-radius: 1.25rem;
+      background: transparent; /* Must be transparent so multiply falls through to the mat */
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.5rem;
-      cursor: pointer;
       position: relative;
-      overflow: hidden; /* Prevents candy bounding boxes from overlapping */
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .candy-cell img {
-      width: 100%; 
-      height: 100%;
+      width: 135%; /* Oversized so they intentionally overlap beautifully */
+      height: 135%;
       object-fit: contain;
-      mix-blend-mode: multiply; /* Blends the image's white bg into the card */
+      mix-blend-mode: multiply; /* Melts the white background into the play-mat and into each other! */
       pointer-events: none;
       display: block;
-      transition: transform 0.3s ease;
     }
 
+    /* Hover animations */
     .candy-cell.selectable:hover {
-      transform: translateY(-4px) scale(1.03);
-      box-shadow: 0 10px 25px rgba(251,113,133,0.3);
-      z-index: 5;
+      transform: scale(1.2) translateY(-4px);
+      z-index: 10;
     }
 
-    .candy-cell.selectable:hover img {
-      transform: scale(1.1) rotate(4deg);
-    }
+    .candy-cell.selectable:active { transform: scale(0.95); }
 
-    .candy-cell.selectable:active { transform: scale(0.96); }
-
-    .candy-cell.my-poison {
-      box-shadow: 0 0 0 3px #ef4444, 0 8px 20px rgba(239,68,68,0.4);
+    /* Poison highlighting adapted for the transparent cells */
+    .candy-cell.my-poison::before {
+      content: '';
+      position: absolute;
+      inset: 15%;
+      background: rgba(239, 68, 68, 0.15);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px #ef4444;
+      z-index: -1;
     }
 
     .candy-cell.my-poison::after {
       content: '☠️';
       position: absolute;
-      top: 4px; right: 4px;
-      font-size: 1rem; z-index: 10;
-      background: rgba(255,255,255,0.8);
-      border-radius: 50%;
-      padding: 2px;
+      top: 0; right: 0;
+      font-size: 1.1rem; z-index: 10;
+      background: white; border-radius: 50%; padding: 2px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
     .candy-cell.not-selectable { cursor: default; }
-    .candy-cell.not-my-turn { cursor: not-allowed; opacity: 0.8; }
+    .candy-cell.not-my-turn { cursor: not-allowed; }
 
     .candy-cell.eaten {
       opacity: 0;
@@ -186,25 +185,22 @@
       pointer-events: none;
     }
 
+    /* Flash red before dying */
     .candy-cell.poison-flash {
       animation: poisonFlash 0.5s ease-in-out 3;
     }
 
     @keyframes poisonFlash {
-      0%,100% { box-shadow: 0 0 0 2px rgba(239,68,68,0.3); }
-      50% { box-shadow: 0 0 0 6px rgba(239,68,68,1), 0 0 30px rgba(239,68,68,0.6); }
-    }
-
-    .candy-cell.poison-dead {
-      background: #ef4444;
-      animation: none;
-      box-shadow: none;
+      0%,100% { transform: scale(1); filter: sepia(1) hue-rotate(-50deg) saturate(3); }
+      50% { transform: scale(1.2); filter: sepia(1) hue-rotate(-50deg) saturate(8); }
     }
 
     .candy-cell.poison-dead img { display: none; }
     .candy-cell.poison-dead::before {
       content: '☠️';
+      position: absolute;
       font-size: 2.5rem;
+      inset: auto; background: transparent; box-shadow: none;
     }
 
     /* ── CRUMBLE CANVAS ── */
@@ -380,6 +376,7 @@
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
   <button class="back-btn" onclick="leaveGame()">←</button>
   <div class="header-status">
@@ -389,6 +386,7 @@
   <div class="header-spacer"></div>
 </header>
 
+<!-- SETUP BANNER -->
 <div id="setupBanner">
   <div class="setup-info">
     <strong>☠️ Choose your poison</strong>
@@ -397,12 +395,18 @@
   <button class="btn-ready" id="btnReady" onclick="sendReady()">Ready</button>
 </div>
 
+<!-- FIELD -->
 <main>
-  <div id="candyGrid"></div>
+  <!-- THE NEW LIGHT PLAY MAT! -->
+  <div class="play-mat">
+    <div id="candyGrid"></div>
+  </div>
 </main>
 
+<!-- CRUMBLE -->
 <canvas id="crumbleCanvas"></canvas>
 
+<!-- SCOREBOARD -->
 <footer>
   <div class="scoreboard">
     <div class="score-side" id="scoreLeft">
@@ -423,6 +427,7 @@
   </div>
 </footer>
 
+<!-- WAITING OVERLAY -->
 <div id="waitingOverlay">
   <h2 style="color:#fb7185; font-size:1.3rem; font-weight:900;">🍬 Share this code</h2>
   <div class="room-card">
@@ -433,8 +438,10 @@
   <button class="btn-leave" onclick="leaveGame()">Leave</button>
 </div>
 
+<!-- TOAST -->
 <div id="toast"></div>
 
+<!-- GAME OVER MODAL -->
 <div id="gameOverModal">
   <div class="modal-card">
     <div class="modal-icon" id="modalIcon">🍬</div>
@@ -521,7 +528,6 @@
   let myPoisonIndex = -1;
   let isSolo = false;
 
-  // Set room code display
   document.getElementById('overlayCode').textContent = roomCode;
   document.getElementById('statusText').textContent = roomCode;
 
@@ -572,8 +578,10 @@
       img.src = data.candy.imageUrl;
       img.alt = data.candy.name;
       
-      // Removed the inline rotation logic that was breaking the grid!
-      // img.style.transform = `rotate(${pos.rotation}deg)`; 
+      // I have brought back the rotation! Because it's on a white mat, 
+      // the white squares will merge together and only the candy will show!
+      const rotation = pos.rotation !== undefined ? pos.rotation : (Math.random() * 50 - 25);
+      img.style.transform = `rotate(${rotation}deg)`;
 
       cell.appendChild(img);
       cell.addEventListener('click', () => onCandyClick(index, cell));
@@ -664,7 +672,6 @@
     setTimeout(() => toast.classList.remove('show'), 2000);
   }
 
-  // ── SOCKET EVENTS ──
   socket.on('readyUpdate', ({ readyCount }) => {
     if (readyCount === 1) document.getElementById('setupSubtext').textContent = '1/2 ready — waiting...';
   });
