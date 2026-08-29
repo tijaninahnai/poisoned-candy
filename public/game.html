@@ -105,62 +105,80 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
-      overflow: hidden;
+      padding: 1.5rem;
+      overflow-y: auto;
     }
 
+    /* Fixed responsive grid */
     #candyGrid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.6rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
       width: 100%;
-      max-width: 420px;
+      max-width: 500px;
+    }
+    
+    @media (min-width: 400px) {
+      #candyGrid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    }
+
+    @media (min-width: 550px) {
+      #candyGrid { grid-template-columns: repeat(5, 1fr); gap: 1rem; }
     }
 
     .candy-cell {
       aspect-ratio: 1;
-      background: white;
-      border-radius: 1rem;
+      background: #ffffff; /* Must remain solid white for mix-blend-mode to work */
+      border-radius: 1.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.3rem;
+      padding: 0.5rem;
       cursor: pointer;
       position: relative;
-      overflow: visible;
-      transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      overflow: hidden; /* Prevents candy bounding boxes from overlapping */
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     .candy-cell img {
-      width: 100%; height: 100%;
+      width: 100%; 
+      height: 100%;
       object-fit: contain;
-      mix-blend-mode: multiply;
+      mix-blend-mode: multiply; /* Blends the image's white bg into the card */
       pointer-events: none;
       display: block;
+      transition: transform 0.3s ease;
     }
 
     .candy-cell.selectable:hover {
-      transform: translateY(-3px) rotate(2deg);
-      box-shadow: 0 8px 24px rgba(251,113,133,0.35);
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 10px 25px rgba(251,113,133,0.3);
       z-index: 5;
     }
 
-    .candy-cell.selectable:active { transform: scale(0.94); }
+    .candy-cell.selectable:hover img {
+      transform: scale(1.1) rotate(4deg);
+    }
+
+    .candy-cell.selectable:active { transform: scale(0.96); }
 
     .candy-cell.my-poison {
-      box-shadow: 0 0 0 3px #ef4444, 0 4px 12px rgba(239,68,68,0.4);
+      box-shadow: 0 0 0 3px #ef4444, 0 8px 20px rgba(239,68,68,0.4);
     }
 
     .candy-cell.my-poison::after {
       content: '☠️';
       position: absolute;
-      top: -10px; right: -8px;
+      top: 4px; right: 4px;
       font-size: 1rem; z-index: 10;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      padding: 2px;
     }
 
     .candy-cell.not-selectable { cursor: default; }
-    .candy-cell.not-my-turn { cursor: not-allowed; }
+    .candy-cell.not-my-turn { cursor: not-allowed; opacity: 0.8; }
 
     .candy-cell.eaten {
       opacity: 0;
@@ -180,12 +198,13 @@
     .candy-cell.poison-dead {
       background: #ef4444;
       animation: none;
+      box-shadow: none;
     }
 
     .candy-cell.poison-dead img { display: none; }
     .candy-cell.poison-dead::before {
       content: '☠️';
-      font-size: 1.8rem;
+      font-size: 2.5rem;
     }
 
     /* ── CRUMBLE CANVAS ── */
@@ -361,7 +380,6 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <button class="back-btn" onclick="leaveGame()">←</button>
   <div class="header-status">
@@ -371,7 +389,6 @@
   <div class="header-spacer"></div>
 </header>
 
-<!-- SETUP BANNER -->
 <div id="setupBanner">
   <div class="setup-info">
     <strong>☠️ Choose your poison</strong>
@@ -380,15 +397,12 @@
   <button class="btn-ready" id="btnReady" onclick="sendReady()">Ready</button>
 </div>
 
-<!-- FIELD -->
 <main>
   <div id="candyGrid"></div>
 </main>
 
-<!-- CRUMBLE -->
 <canvas id="crumbleCanvas"></canvas>
 
-<!-- SCOREBOARD -->
 <footer>
   <div class="scoreboard">
     <div class="score-side" id="scoreLeft">
@@ -409,7 +423,6 @@
   </div>
 </footer>
 
-<!-- WAITING OVERLAY -->
 <div id="waitingOverlay">
   <h2 style="color:#fb7185; font-size:1.3rem; font-weight:900;">🍬 Share this code</h2>
   <div class="room-card">
@@ -420,10 +433,8 @@
   <button class="btn-leave" onclick="leaveGame()">Leave</button>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
-<!-- GAME OVER MODAL -->
 <div id="gameOverModal">
   <div class="modal-card">
     <div class="modal-icon" id="modalIcon">🍬</div>
@@ -560,7 +571,9 @@
       const img = document.createElement('img');
       img.src = data.candy.imageUrl;
       img.alt = data.candy.name;
-      img.style.transform = `rotate(${pos.rotation}deg)`;
+      
+      // Removed the inline rotation logic that was breaking the grid!
+      // img.style.transform = `rotate(${pos.rotation}deg)`; 
 
       cell.appendChild(img);
       cell.addEventListener('click', () => onCandyClick(index, cell));
