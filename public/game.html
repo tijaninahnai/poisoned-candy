@@ -99,7 +99,7 @@
     .btn-ready.enabled { opacity: 1; pointer-events: auto; }
     .btn-ready.waiting { background: #334155; color: #64748b; opacity: 1; pointer-events: none; }
 
-    /* ── FIELD ── */
+    /* ── FIELD & PLAY MAT ── */
     main {
       flex: 1;
       display: flex;
@@ -107,49 +107,54 @@
       justify-content: center;
       padding: 1rem;
       overflow: hidden;
-      background: #ffffff; /* Make the whole play mat white */
-      border-radius: 1.5rem;
-      margin: 1rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Het nieuwe witte speelveld */
+    .play-mat {
+      background: #ffffff; 
+      padding: 2rem 1.5rem;
+      border-radius: 2rem;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: 450px;
     }
 
     #candyGrid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 4 columns looks best for overlap */
+      grid-template-columns: repeat(4, 1fr);
       gap: 0.5rem;
       width: 100%;
-      max-width: 420px;
     }
 
     .candy-cell {
       aspect-ratio: 1;
-      background: transparent; /* CRITICAL: Must be transparent so they can overlap without white square outlines */
+      background: transparent; /* Belangrijk: Geen witte blokjes meer! */
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       position: relative;
-      overflow: visible;
+      overflow: visible; /* Zorgt ervoor dat snoepjes mogen uitsteken en overlappen */
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
     }
 
     .candy-cell img {
-      width: 140%; /* Oversized so they intentionally overlap the grid bounds beautifully */
-      height: 140%;
+      width: 150%; /* Maakt ze groter dan hun grid-vakje zodat ze overlappen */
+      height: 150%;
       object-fit: contain;
-      mix-blend-mode: multiply; /* Melts the image's white bg into the white main mat AND into each other! */
+      mix-blend-mode: multiply; /* Smelt de witte achtergrond van de jpg samen met het witte speelveld */
       pointer-events: none;
       display: block;
+      transition: transform 0.3s;
     }
 
     .candy-cell.selectable:hover {
       transform: scale(1.15) translateY(-5px);
       z-index: 5;
     }
-
     .candy-cell.selectable:active { transform: scale(0.94); }
 
-    /* Poison highlight adapted to not use square box-shadows */
+    /* Visuele markering voor de poison-fase aangepast naar het witte veld */
     .candy-cell.my-poison::before {
       content: '';
       position: absolute;
@@ -178,77 +183,42 @@
       pointer-events: none;
     }
 
-    /* Flash red using filters instead of square shadows */
-    .candy-cell.poison-flash {
-      animation: poisonFlash 0.5s ease-in-out 3;
-    }
-
+    .candy-cell.poison-flash { animation: poisonFlash 0.5s ease-in-out 3; }
     @keyframes poisonFlash {
       0%,100% { transform: scale(1); filter: sepia(1) hue-rotate(-50deg) saturate(3); }
       50% { transform: scale(1.2); filter: sepia(1) hue-rotate(-50deg) saturate(8); }
     }
 
-    .candy-cell.poison-dead {
-      animation: none;
-    }
-
+    .candy-cell.poison-dead { animation: none; }
     .candy-cell.poison-dead img { display: none; }
-    .candy-cell.poison-dead::before {
-      content: '☠️';
-      position: absolute;
-      font-size: 2.5rem;
-    }
+    .candy-cell.poison-dead::before { content: '☠️'; position: absolute; font-size: 2.5rem; }
 
     /* ── CRUMBLE CANVAS ── */
-    #crumbleCanvas {
-      position: fixed; inset: 0;
-      pointer-events: none; z-index: 50;
-    }
+    #crumbleCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
 
     /* ── FOOTER SCOREBOARD ── */
     footer {
-      background: #0f172a;
-      border-top: 1px solid #1e293b;
-      padding: 0.75rem 1rem;
-      display: flex;
-      justify-content: center;
+      background: #0f172a; border-top: 1px solid #1e293b; padding: 0.75rem 1rem;
+      display: flex; justify-content: center;
     }
 
     .scoreboard {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 360px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 1.25rem;
-      padding: 0.4rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; max-width: 360px; background: #020617; border: 1px solid #1e293b;
+      border-radius: 1.25rem; padding: 0.4rem; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
 
     .score-side {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.6rem 0.8rem;
-      border-radius: 1rem;
-      border: 1px solid transparent;
-      transition: all 0.3s;
-      flex: 1;
+      display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem;
+      border-radius: 1rem; border: 1px solid transparent; transition: all 0.3s; flex: 1;
     }
 
     .score-side.active-p { background: rgba(251,113,133,0.08); border-color: rgba(251,113,133,0.25); }
     .score-side.active-cpu { background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.25); }
 
     .score-icon {
-      padding: 0.45rem;
-      border-radius: 0.6rem;
-      background: #1e293b;
-      color: #475569;
-      font-size: 1.1rem;
-      line-height: 1;
-      transition: all 0.3s;
+      padding: 0.45rem; border-radius: 0.6rem; background: #1e293b; color: #475569;
+      font-size: 1.1rem; line-height: 1; transition: all 0.3s;
     }
 
     .score-side.active-p .score-icon { background: rgba(251,113,133,0.2); color: #fb7185; }
@@ -260,112 +230,64 @@
 
     .score-side.right { flex-direction: row-reverse; }
     .score-side.right .score-info { align-items: flex-end; }
-
     .score-vs { color: #334155; font-weight: 900; font-size: 0.9rem; padding: 0 0.5rem; }
 
     /* ── WAITING OVERLAY ── */
     #waitingOverlay {
-      position: fixed; inset: 0;
-      background: rgba(2,6,23,0.97);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 1.5rem; z-index: 200;
-      padding: 2rem;
+      position: fixed; inset: 0; background: rgba(2,6,23,0.97); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.5rem; z-index: 200; padding: 2rem;
     }
-
     .room-card {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 1.5rem;
-      padding: 2rem 2.5rem;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      background: #0f172a; border: 1px solid #1e293b; border-radius: 1.5rem; padding: 2rem 2.5rem;
+      text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
-
     .room-card .room-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #475569; margin-bottom: 0.5rem; }
     .room-card .room-code { font-size: 2.5rem; font-weight: 900; color: #fb7185; letter-spacing: 0.2em; }
     .room-card .room-sub { font-size: 0.8rem; color: #334155; margin-top: 0.75rem; }
-
     .pulse { animation: pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-
     .btn-leave {
-      background: none; border: 1px solid #1e293b;
-      color: #475569; padding: 0.6rem 1.5rem;
-      border-radius: 0.75rem; cursor: pointer; font-size: 0.85rem;
-      transition: all 0.2s;
+      background: none; border: 1px solid #1e293b; color: #475569; padding: 0.6rem 1.5rem;
+      border-radius: 0.75rem; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
     }
     .btn-leave:hover { border-color: #fb7185; color: #fb7185; }
 
     /* ── TOAST ── */
     #toast {
-      position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
-      background: rgba(15,23,42,0.95);
-      border: 1px solid #1e293b;
-      border-radius: 0.75rem;
-      padding: 0.55rem 1.1rem;
-      font-size: 0.85rem; color: #cbd5e1;
-      z-index: 160; opacity: 0; transition: opacity 0.25s;
-      pointer-events: none; white-space: nowrap;
-      backdrop-filter: blur(8px);
+      position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.95);
+      border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.55rem 1.1rem; font-size: 0.85rem;
+      color: #cbd5e1; z-index: 160; opacity: 0; transition: opacity 0.25s; pointer-events: none;
+      white-space: nowrap; backdrop-filter: blur(8px);
     }
     #toast.show { opacity: 1; }
 
     /* ── GAME OVER MODAL ── */
     #gameOverModal {
-      display: none;
-      position: fixed; inset: 0; z-index: 50;
-      align-items: center; justify-content: center;
-      padding: 1rem;
-      background: rgba(2,6,23,0.8);
-      backdrop-filter: blur(6px);
+      display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center;
+      padding: 1rem; background: rgba(2,6,23,0.8); backdrop-filter: blur(6px);
     }
-
     #gameOverModal.show { display: flex; }
-
     .modal-card {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 2rem;
-      padding: 2rem;
-      max-width: 340px; width: 100%;
-      text-align: center;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+      background: #0f172a; border: 1px solid #1e293b; border-radius: 2rem; padding: 2rem;
+      max-width: 340px; width: 100%; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);
     }
-
-    .modal-icon {
-      width: 5rem; height: 5rem;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 1.5rem;
-      font-size: 2.5rem;
-    }
-
+    .modal-icon { width: 5rem; height: 5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; }
     .modal-icon.won { background: rgba(34,197,94,0.15); }
     .modal-icon.lost { background: rgba(239,68,68,0.15); }
-
     .modal-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
     .modal-title.won { color: #22c55e; }
     .modal-title.lost { color: #ef4444; }
     .modal-sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5; }
-
     .modal-btns { display: flex; flex-direction: column; gap: 0.6rem; }
-
     .btn-again {
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-      background: #f43f5e; color: white;
-      border: none; border-radius: 1rem;
-      padding: 0.9rem; font-size: 1rem; font-weight: 700;
-      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: #f43f5e; color: white;
+      border: none; border-radius: 1rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
     }
     .btn-again:hover { background: #fb7185; }
     .btn-again:active { transform: scale(0.97); }
-
     .btn-exit {
-      background: none; color: #64748b;
-      border: none; border-radius: 1rem;
-      padding: 0.75rem; font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
+      background: none; color: #64748b; border: none; border-radius: 1rem; padding: 0.75rem;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
     .btn-exit:hover { background: #1e293b; color: white; }
   </style>
@@ -391,9 +313,8 @@
   <button class="btn-ready" id="btnReady" onclick="sendReady()">Ready</button>
 </div>
 
-<!-- FIELD -->
+<!-- FIELD & PLAY MAT -->
 <main>
-  <!-- THE NEW LIGHT PLAY MAT! -->
   <div class="play-mat">
     <div id="candyGrid"></div>
   </div>
@@ -574,7 +495,7 @@
       img.src = data.candy.imageUrl;
       img.alt = data.candy.name;
       
-      // Now that the cells are transparent, we can safely bring the rotation back!
+      // Willekeurige rotatie is weer terug!
       const rotation = pos.rotation !== undefined ? pos.rotation : (Math.random() * 60 - 30);
       img.style.transform = `rotate(${rotation}deg)`;
 
